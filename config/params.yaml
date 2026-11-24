@@ -1,0 +1,118 @@
+# PARAMETROS TECNICOS (plomeria del equipo). El criterio de negocio vive en reglas.yaml.
+version: "1.0"
+
+servidor:
+  host: 127.0.0.1               # solo este equipo; no se expone a la red
+  puerto: 8765
+  abrir_navegador: true
+
+rutas:
+  bd: data/captura.db            # base operativa (captura, clientes, cotizaciones, metas, seguimiento)
+  almacen: data/almacen.db       # almacen analitico en esquema estrella (lo llena el ETL)
+  fichas: fichas_clientes        # fichas del inmueble en Markdown: una carpeta por NIT o cedula
+  web: web/index.html
+  exportaciones: salidas
+  trabajo_claude: data/_claude_cli
+  respaldos: respaldos           # copias de seguridad que crea el administrador (.zip)
+
+red:
+  timeout_s: 45
+  reintentos: 2                 # solo ante errores de red o 5xx; 403/429 detienen la fuente
+  espera_base_s: 1.5
+  # Identifica la herramienta ante servicios publicos (lo exigen OSM y Nominatim).
+  # El contacto se toma de CONTACTO en .env.
+  # Las fuentes miden el radio con su propia geodesia; se pide un poco mas y el corte exacto
+  # (haversine <= radio) lo hace la aplicacion. Lo que sobra queda contado como descartado.
+  margen_radio: 1.01
+  user_agent: "VentureOne-CapturaEntorno/1.0 (uso analitico interno; contacto: {contacto})"
+  contacto_por_defecto: contacto@ventureone.com.co
+
+arcgis:
+  base: https://www.medellin.gov.co/servidormapas/rest/services
+  tamano_pagina: 1000
+  max_paginas: 80               # tope de solicitudes por capa; si se alcanza, la capa queda 'parcial'
+  concurrencia: 4
+  pausa_paginas_s: 0.25
+
+osm:
+  overpass_urls:
+    - https://overpass-api.de/api/interpreter
+    - https://overpass.kumi.systems/api/interpreter
+  # Overpass reparte turnos por IP: una consulta puede esperar su turno 20 a 40 s (medido el
+  # 21-nov-2026 desde este equipo). Por eso tiene tiempos propios, mas largos que el resto.
+  timeout_consulta_s: 45        # limite que se le declara al servidor dentro de la consulta
+  timeout_http_s: 60            # espera maxima por instancia
+  timeout_conexion_s: 10        # si una instancia ni siquiera conecta, se pasa pronto a la siguiente
+  presupuesto_total_s: 75       # espera maxima sumando instancias; despues la fuente queda en error
+  reintentos_por_instancia: 0   # si una instancia falla se pasa a la siguiente, sin insistir
+  nominatim_url: https://nominatim.openstreetmap.org/search
+
+google:
+  places_url: https://places.googleapis.com/v1/places:searchNearby
+  geocode_url: https://maps.googleapis.com/maps/api/geocode/json
+  # Solo campos del SKU Pro. No pedir rating ni telefono: suben a Enterprise y no se pueden guardar.
+  field_mask: "places.id,places.displayName,places.location,places.types,places.primaryType"
+  concurrencia: 5
+
+claude:
+  proveedor: auto               # auto | claude_code | api | ninguno
+  ejecutable: claude            # Claude Code en el PATH (usa la sesion del plan Claude)
+  modelo_cli: haiku             # alias de Claude Code: haiku | sonnet | opus
+  modelo_api: claude-haiku-5-5  # solo si hay ANTHROPIC_API_KEY
+  timeout_s: 240
+  max_turnos: 6
+  max_tokens_api: 16000
+  paralelo: 2
+  instruccion_cli: "Procesa el lote JSON que llega por la entrada estandar siguiendo las reglas del sistema y devuelve solo la salida estructurada."
+
+rpa:
+  # Busqueda de anuncios vigentes en inmobiliarias con Claude Code (sesion del plan). Solo lee los dominios
+  # encendidos de fuentes.yaml › portales_inmobiliarios; no evade bloqueos.
+  activo: true
+  modelo_cli: sonnet            # la lectura de sitios pide mas que la curaduria (haiku)
+  timeout_s: 420                # por lote de sitios
+  max_turnos: 40
+  max_anuncios: 20              # tope de anuncios por lote de sitios
+  sitios_por_lote: 6            # cuantos sitios lee cada llamada a Claude Code
+  lotes_en_paralelo: 4          # llamadas simultaneas
+  max_sitios_por_busqueda: 0    # 0 = sin tope; si hay tope, se leen los primeros del catalogo y el resto queda dicho
+  instruccion_cli: "Haz la busqueda que llega por la entrada estandar siguiendo las reglas del sistema y devuelve solo la salida estructurada."
+
+respuesta:
+  max_items_por_categoria: 150  # lo que viaja al navegador; la base guarda todo
+
+acceso:
+  sesion_horas: 10              # despues hay que volver a entrar
+  cookie: v1_sesion             # HttpOnly, SameSite=Strict; solo viaja a 127.0.0.1
+  iteraciones_clave: 200000     # PBKDF2-SHA256
+  intentos_max: 5               # claves erradas seguidas para un usuario...
+  bloqueo_min: 10               # ...lo bloquean estos minutos
+
+verificacion:
+  # Lo usa  iniciar.bat verificar  (python -m captura.verificacion). No cambia la captura.
+  timeout_s: 20                 # espera por fuente
+  timeout_overpass_s: 40        # Overpass reparte turnos: necesita mas
+  aviso_sesion_claude_dias: 7   # avisar si la sesion de Claude Code vence antes
+  disco_minimo_gb: 2
+  direccion_prueba: "Carrera 43A # 1-50, Medellin"   # unica llamada de prueba a Geocoding (si hay llave)
+  punto_prueba: {lat: 6.2045, lng: -75.5713, radio_m: 500}   # unica llamada de prueba a Places (si hay llave)
+  capas_muestra: [nomenclatura, toponimia, equipamientos, establecimientos, oferta_oime]
+  recursos_navegador:           # lo que carga la pagina (no Python): si fallan, el mapa no abre
+    - https://unpkg.com/leaflet@1.9.4/dist/leaflet.js
+    - https://tile.openstreetmap.org/0/0/0.png
+    - https://fonts.googleapis.com/css2?family=Inter&display=swap
+
+control:
+  muestra_distancia_9377: 2000  # puntos con los que se compara haversine contra EPSG:9377
+
+bitacora:
+  max_detalle_por_capa: 200     # por encima, la capa deja una sola linea de resumen en la bitacora
+
+mapa:
+  centro: {lat: 6.2442, lng: -75.5812}
+  zoom: 13
+
+respaldos:
+  incluir_fichas: true          # las fichas en Markdown y JSON de fichas_clientes/
+  incluir_config: true          # los .yaml de config/ (nunca el .env: las llaves no se copian)
+  en_lista: 50                  # respaldos que muestra la pantalla del administrador

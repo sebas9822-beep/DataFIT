@@ -1,0 +1,1023 @@
+# Inmobiliarias y portales donde el RPA busca anuncios vigentes (decisiones DU-23 y DU-27).
+#
+# Origen: listado de Sebastián "Inmobiliarias de Medellín y Antioquia: sitios web aptos para RPA" (prueba con
+# navegador del 23-nov-2026: apartamento en venta en Laureles, 80 m²) y "Concepto unificado de fuentes".
+#
+# Cada sitio:
+#   id, nombre, dominio   el dominio es el único que el RPA puede abrir para ese sitio
+#   tipo                  portal | inmobiliaria | agregador
+#   nivel                 A = la búsqueda va en la URL · B = solo por formulario · C = listado de venta sin filtros en la URL
+#   busqueda              URL que funcionó en la prueba externa (apartamento, venta, Laureles). El RPA la adapta al
+#                         barrio y al tipo de inmueble que pidió el cliente
+#   permitida             false = no se consulta nunca (sus términos lo prohíben). Se muestra tachada
+#   por_defecto           true = sale encendida en la pantalla. El comercial puede apagarla o encenderla
+#   lectura               resultado de la prueba con el motor de esta aplicación (scripts/probar_inmobiliarias.py):
+#                         ok | sin_resultados | no_legible | bloqueado | sin_probar
+#   revision_terminos     pendiente | <fecha> cuando Venture One revise los términos de uso del sitio (decisión A-08)
+#
+# Agregar una inmobiliaria: una entrada aquí con su nombre, su dominio y, si se conoce, su URL de búsqueda.
+# Las descartadas no se consultan ni se muestran: quedan aquí con su motivo.
+
+sitios:
+  - id: fincaraiz
+    nombre: "Fincaraíz"
+    dominio: fincaraiz.com.co
+    tipo: portal
+    nivel: A
+    plataforma: "Portal"
+    busqueda: "https://www.fincaraiz.com.co/venta/apartamentos/laureles/medellin"
+    filtros: "Venta · Apto · Ciudad · Laureles"
+    prueba_externa: "Consulta OK · ≈30 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Portal núcleo. Términos de uso por revisar (A-08)"
+  - id: metrocuadrado
+    nombre: "Metrocuadrado"
+    dominio: metrocuadrado.com
+    tipo: portal
+    nivel: A
+    plataforma: "Portal"
+    busqueda: "https://www.metrocuadrado.com/apartamentos/venta/medellin/laureles/"
+    filtros: "Venta · Apto · Ciudad · Laureles"
+    prueba_externa: "Consulta OK · ≈40 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Portal núcleo. Términos de uso por revisar (A-08)"
+  - id: ciencuadras
+    nombre: "Ciencuadras"
+    dominio: ciencuadras.com
+    tipo: portal
+    nivel: A
+    plataforma: "Portal"
+    busqueda: "https://www.ciencuadras.com/venta/medellin/apartamento"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈28 resultados"
+    permitida: false
+    por_defecto: false
+    lectura: sin_probar
+    revision_terminos: pendiente
+    nota: "Sus términos prohíben robots y bases derivadas: no se consulta"
+  - id: puntopropiedad
+    nombre: "Punto Propiedad"
+    dominio: puntopropiedad.com
+    tipo: agregador
+    nivel: A
+    plataforma: "Portal"
+    busqueda: "https://www.puntopropiedad.com/venta/apartamentos/medellin/laureles"
+    filtros: "Venta · Apto · Ciudad · Laureles"
+    prueba_externa: "Consulta OK · ≈15 resultados"
+    permitida: true
+    por_defecto: false
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Agregador: repite avisos de otros sitios. Apagado por defecto"
+  - id: habi
+    nombre: "Habi"
+    dominio: habi.co
+    tipo: portal
+    nivel: A
+    plataforma: "Portal"
+    busqueda: "https://habi.co/venta-apartamentos/medellin"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈44 resultados"
+    permitida: true
+    por_defecto: false
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Compra y venta directa: el concepto de fuentes la deja fuera de los comparables. Apagado por defecto"
+  - id: lahaus
+    nombre: "La Haus"
+    dominio: lahaus.com
+    tipo: portal
+    nivel: A
+    plataforma: "Portal"
+    busqueda: "https://www.lahaus.com/co/venta"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈50+ resultados"
+    permitida: true
+    por_defecto: false
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Plataforma transaccional: el concepto de fuentes la deja fuera de los comparables. Apagado por defecto"
+  - id: acrecer
+    nombre: "Acrecer"
+    dominio: acrecer.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Next.js)"
+    busqueda: "https://www.acrecer.com/inmuebles/venta/apartamento/medellin"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: activourbano
+    nombre: "Activo Urbano"
+    dominio: activourbano.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress"
+    busqueda: "https://activourbano.com.co/inmuebles/?tipo-de-propiedad=apartamento&product_cat=en-venta"
+    filtros: "Venta · Apto"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: albertoalvarez
+    nombre: "Alberto Álvarez"
+    dominio: albertoalvarez.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Next.js)"
+    busqueda: "https://albertoalvarez.com/inmuebles/ventas/apartamento/medellin"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈9 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: alnago
+    nombre: "Arrendamientos Alnago"
+    dominio: alnago.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi (sitio propio)"
+    busqueda: "https://alnago.com/es/categorias/comprar?tipo-propiedad=apartamento"
+    filtros: "Venta · Apto"
+    prueba_externa: "Consulta OK · ≈13 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: arrendamientosayura
+    nombre: "Arrendamientos Ayurá"
+    dominio: arrendamientosayura.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Next.js)"
+    busqueda: "https://arrendamientosayura.com/buscar?iku5-service_type=1&iku5-id_type=1&iku5-city__id=4"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: arrendamientosenvigadosa
+    nombre: "Arrendamientos Envigado"
+    dominio: arrendamientosenvigadosa.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Next.js)"
+    busqueda: "https://arrendamientosenvigadosa.com.co/busqueda?modo=venta"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Solo el parámetro 'modo=venta' es confiable; tipo y zona por formulario."
+  - id: arrendamientoslasvegas
+    nombre: "Arrendamientos Las Vegas"
+    dominio: arrendamientoslasvegas.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Domus"
+    busqueda: "https://arrendamientoslasvegas.com/inmuebles/venta"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈18 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Plataforma Domus: el parámetro de texto no filtra; filtrar por formulario o en la extracción."
+  - id: anutibara
+    nombre: "Arrendamientos Nutibara"
+    dominio: anutibara.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Nuxt)"
+    busqueda: "https://anutibara.com/search/inmueble/venta/laureles?latitud=6.2447&longitud=-75.591&precioMinimo=0&precioMaximo=3000000000&area=0"
+    filtros: "Venta · Laureles"
+    prueba_externa: "Consulta OK · ≈20 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Búsqueda geográfica (latitud/longitud de Laureles). Inventario mayoritario en arriendo."
+  - id: arrendamientossantafe
+    nombre: "Arrendamientos Santa Fe"
+    dominio: arrendamientossantafe.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Next.js)"
+    busqueda: "https://arrendamientossantafe.com/propiedades?oferta=Comprar&q=laureles"
+    filtros: "Venta · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Fuerte en arriendo; 'oferta=Comprar' filtra venta."
+  - id: bemsa
+    nombre: "BEMSA Propiedad Raíz"
+    dominio: bemsa.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "SIMI"
+    busqueda: "https://bemsa.com.co/ventas.php?tipo=1&ciudad=25974&zonas=0&barrio=0&pdesde=&phasta=&adesde=&ahasta=&codigo="
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: bienraiz
+    nombre: "Bien Raíz S.A.S."
+    dominio: bienraiz.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://bienraiz.co/ventas/apartamento/medellin/"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈24 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: bienesraicespremium
+    nombre: "Bienes Raíces Premium"
+    dominio: bienesraicespremium.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "SIMI"
+    busqueda: "https://bienesraicespremium.com.co/inmuebles/?gestion=Venta&tipo%5B%5D=Apartamento&q=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈5 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: brando
+    nombre: "Brando & Cía"
+    dominio: brando.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi (sitio propio)"
+    busqueda: "https://brando.com.co/propiedades?ciudad=Medell%C3%ADn&negocio=Venta&tipo=Apartamento"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: brikss
+    nombre: "Brikss"
+    dominio: brikss.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://www.brikss.com/residencial/medellin-antioquia/inmuebles-venta"
+    filtros: "Venta · Ciudad"
+    prueba_externa: "Consulta OK · ≈30 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "La ruta por tipo 'apartamentos-venta' no existe; usar la de inmuebles en venta de Medellín."
+  - id: casasyespacios
+    nombre: "Casas y Espacios"
+    dominio: casasyespacios.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress + plugin de inmuebles"
+    busqueda: "https://casasyespacios.co/inmuebles/g/venta/t/apartamentos/n/laureles/"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · 0 en Laureles"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "La consulta por barrio respondió 'sin resultados' para Laureles; inventario en venta disponible en /inmuebles/g/venta/."
+  - id: century21colombia
+    nombre: "Century 21 Colombia"
+    dominio: century21colombia.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://century21colombia.com/busqueda/tipo_departamento/operacion_venta/en-estado_antioquia/en-municipio_medellin"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈10 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Red nacional; filtrar por estado/municipio en la ruta."
+  - id: coloniainmobiliaria
+    nombre: "Colonia Inmobiliaria"
+    dominio: coloniainmobiliaria.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://coloniainmobiliaria.com/inmuebles/Venta/clases_Apartamento/municipios_Medellin/barrios_LAURELES/precio_0_999999999999/"
+    filtros: "Venta · Apto · Ciudad · Laureles"
+    prueba_externa: "Consulta OK · ≈5 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Consulta ejecutada; filtros completos en la ruta (venta, apto, municipio, barrio)."
+  - id: conalturainmobiliaria
+    nombre: "Conaltura Inmobiliaria"
+    dominio: conalturainmobiliaria.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://conalturainmobiliaria.com/inmuebles-a.php?tipo_inmueble_buscar=Apartamento&ciudad_buscar=Medellin&barrio_buscar=Laureles"
+    filtros: "Apto · Ciudad · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Filtros de tipo, ciudad y barrio en la URL."
+  - id: dlogisticainmobiliaria
+    nombre: "D'Logística Inmobiliaria"
+    dominio: dlogisticainmobiliaria.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://dlogisticainmobiliaria.com/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: deranova
+    nombre: "Deranova Inmobiliaria"
+    dominio: deranova.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://deranova.co/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · 0 en Laureles"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Consulta ejecutada; 0 aptos en Laureles. Sin el filtro de texto lista 12 aptos en venta."
+  - id: duquegiraldo
+    nombre: "Duque Giraldo Propiedad Raíz"
+    dominio: duquegiraldo.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://duquegiraldo.com/propiedades?c=MEDELLIN&s=LAURELES"
+    filtros: "Ciudad · Laureles"
+    prueba_externa: "Consulta OK · ≈22 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Filtro por municipio y sector en la URL (c=MEDELLIN&s=LAURELES)."
+  - id: diazpropiedades
+    nombre: "Díaz Propiedades"
+    dominio: diazpropiedades.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi (sitio propio)"
+    busqueda: "https://diazpropiedades.com/apartamentos/?negocio=venta&q=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: engelvoelkers
+    nombre: "Engel & Völkers Medellín"
+    dominio: engelvoelkers.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Next.js)"
+    busqueda: "https://www.engelvoelkers.com/co/es/propertysearch?businessArea[]=residential&currency=COP&marketCountryCode=co&masterDataShopIds[]=afde2ce9&measurementSystem=imperial&normalizedStatuses[]=ACTIVE&propertyMarketingType[]=sale&sortingOptions[]=PUBLISHED_AT_DESC"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈33 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Buscador filtrado por la oficina de Medellín (venta residencial). Segmento alto."
+  - id: gaviriainmobiliaria
+    nombre: "Gaviria Inmobiliaria"
+    dominio: gaviriainmobiliaria.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://gaviriainmobiliaria.com/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: panoramainmobiliario
+    nombre: "Grupo Panorama Inmobiliario"
+    dominio: panoramainmobiliario.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://panoramainmobiliario.co/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈13 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: gomezsierrapropiedades
+    nombre: "Gómez Sierra Propiedades"
+    dominio: gomezsierrapropiedades.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://gomezsierrapropiedades.com/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈4 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: habitamos
+    nombre: "Habitamos Propiedad Raíz"
+    dominio: habitamos.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://habitamos.com.co/propiedades?comercio=venta&tipo=Apartamento&municipio=Medell%C3%ADn"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: arangotobon
+    nombre: "Hermanos Arango Tobón"
+    dominio: arangotobon.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress"
+    busqueda: "https://arangotobon.com/todas-las-propiedades/?clase=Apartamento&municipio=Medellin&barrio=Laureles"
+    filtros: "Apto · Ciudad · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Filtros de tipo, municipio y barrio en la URL."
+  - id: imubli
+    nombre: "Imubli"
+    dominio: imubli.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress + plugin de inmuebles"
+    busqueda: "https://imubli.com/inmuebles/g/venta/t/apartamentos/n/laureles/"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · 0 en Laureles"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "La consulta por barrio respondió 'sin resultados' para Laureles; inventario pequeño (Medellín y Rionegro)."
+  - id: inmobiliarialleras
+    nombre: "Inmobiliaria Lleras"
+    dominio: inmobiliarialleras.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia (Next.js)"
+    busqueda: "https://www.inmobiliarialleras.com/buscar?op=Venta&tipo=Apartamento&q=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈5 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Foco en El Poblado."
+  - id: inmobiliariapoblasur
+    nombre: "Inmobiliaria Poblasur"
+    dominio: inmobiliariapoblasur.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://inmobiliariapoblasur.com/s/apartamento/venta?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈9 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: inmobiliariasantillana
+    nombre: "Inmobiliaria Santillana"
+    dominio: inmobiliariasantillana.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress"
+    busqueda: "https://inmobiliariasantillana.co/propiedades/?negocio=venta&tipo=apartamento&q=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: inmobiliariatobon
+    nombre: "Inmobiliaria Tobón"
+    dominio: inmobiliariatobon.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://inmobiliariatobon.com/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: inmobiliariavicasa
+    nombre: "Inmobiliaria Vicasa"
+    dominio: inmobiliariavicasa.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://www.inmobiliariavicasa.com/inmuebleslist.asp?x_TipodeInmueble=1&x_TipodeNegocio=2"
+    filtros: "Venta · Apto"
+    prueba_externa: "Consulta OK · ≈22 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: lapalmainmobiliaria
+    nombre: "La Palma Inmobiliaria"
+    dominio: lapalmainmobiliaria.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://lapalmainmobiliaria.com.co/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: livinmobiliaria
+    nombre: "Livin Inmobiliaria"
+    dominio: livinmobiliaria.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://www.livinmobiliaria.com/resultados?gestion=Venta&location=laureles"
+    filtros: "Venta · Laureles"
+    prueba_externa: "Consulta OK · ≈50+ resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: maestranza
+    nombre: "Maestranza Gestión Inmobiliaria"
+    dominio: maestranza.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress + plugin de inmuebles"
+    busqueda: "https://maestranza.co/inmuebles/g/venta/t/apartamentos/n/laureles/"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈7 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: martinezasociados
+    nombre: "Martínez Asociados Inmobiliaria"
+    dominio: martinezasociados.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi (sitio propio)"
+    busqueda: "https://martinezasociados.com.co/inmuebles/venta?match=laureles"
+    filtros: "Venta · Laureles"
+    prueba_externa: "Consulta OK · ≈16 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: mattisinmobiliaria
+    nombre: "Mattis Inmobiliaria"
+    dominio: mattisinmobiliaria.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "SIMI"
+    busqueda: "https://mattisinmobiliaria.com.co/property_type/apartamento/?operation=sale&location=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈9 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: miactivo
+    nombre: "Miactivo Inmuebles & Avalúos"
+    dominio: miactivo.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://miactivo.co/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: murillopropiedadraiz
+    nombre: "Murillo Propiedad Raíz"
+    dominio: murillopropiedadraiz.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Domus"
+    busqueda: "https://murillopropiedadraiz.com/venta/?tipo=Apartamentos&ciudad=Medellin"
+    filtros: "Venta · Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈42 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: monicadiazpropiedadraiz
+    nombre: "Mónica Díaz Propiedad Raíz"
+    dominio: monicadiazpropiedadraiz.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://monicadiazpropiedadraiz.com/s/apartamento/venta?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈1 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: onegrupo
+    nombre: "ONE Grupo Inmobiliario"
+    dominio: onegrupo.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress Houzez"
+    busqueda: "https://onegrupo.co/busqueda/?keyword=Laureles&status%5B%5D=venta&type%5B%5D=apartamentos"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈15 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: portadainmobiliaria
+    nombre: "Portada Inmobiliaria"
+    dominio: portadainmobiliaria.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "SIMI"
+    busqueda: "https://portadainmobiliaria.com/busqueda/#/?gestion=Venta&tipoPropiedad=Apartamento&ubicacion=Laureles&codigo="
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Ruta con # (aplicación de una sola página): el RPA debe esperar a que carguen los resultados."
+  - id: propiedadesnakama
+    nombre: "Propiedades Nakama"
+    dominio: propiedadesnakama.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress WP Residence"
+    busqueda: "https://propiedadesnakama.com/advanced-search/?advanced_city=medellin&filter_search_type%5B%5D=apartamento"
+    filtros: "Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈30+ resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Segmento de lujo; búsqueda avanzada por ciudad y tipo."
+  - id: proyectain
+    nombre: "ProyectaIN Inmobiliaria"
+    dominio: proyectain.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Plataforma 'ver_inmueble'"
+    busqueda: "https://proyectain.com/inmuebles/Apartamento/Medell%C3%ADn?cod_="
+    filtros: "Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈30 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: inmobiliariapuntoraiz
+    nombre: "Punto Raíz"
+    dominio: inmobiliariapuntoraiz.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://inmobiliariapuntoraiz.com/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · 0 en Laureles"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Consulta ejecutada; 0 aptos en Laureles. Sin el filtro de texto lista 12 aptos en venta."
+  - id: medellin_realestate
+    nombre: "RE/MAX Medellín"
+    dominio: medellin-realestate.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Propia"
+    busqueda: "https://medellin-realestate.com/property/apartments-for-sale"
+    filtros: "Venta · Apto"
+    prueba_externa: "Consulta OK · ≈23 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Sitio en inglés; precios en COP. La categoría de apartamentos en venta funciona por URL; el filtro por zona (Laureles) solo opera desde su formulario."
+  - id: romeroycia
+    nombre: "Romero & Cía Propiedad Raíz"
+    dominio: romeroycia.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi (sitio propio)"
+    busqueda: "https://romeroycia.com/buscador-de-propiedades/?lugar=medellin"
+    filtros: "Ciudad"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Filtra por zona (lugar=medellin, oriente, occidente)."
+  - id: stargroupinmobiliaria
+    nombre: "Star Group Inmobiliaria"
+    dominio: stargroupinmobiliaria.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://stargroupinmobiliaria.com/s/apartamento/venta?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈8 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: sucasainmobiliaria
+    nombre: "SuCasa Inmobiliaria"
+    dominio: sucasainmobiliaria.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress"
+    busqueda: "https://sucasainmobiliaria.com.co/resultado-de-busqueda/?tipo_inmueble=apartamento&operacion=venta"
+    filtros: "Venta · Apto"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: sumeriapropiedadraiz
+    nombre: "Sumeria Propiedad Raíz"
+    dominio: sumeriapropiedadraiz.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi (sitio propio)"
+    busqueda: "https://sumeriapropiedadraiz.com/inmuebles/?id_property_type=2&business_type=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: treehouse
+    nombre: "Treehouse Real Business"
+    dominio: treehouse.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://treehouse.com.co/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈2 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: tugestor
+    nombre: "Tu Gestor Inmobiliaria"
+    dominio: tugestor.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://tugestor.com.co/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: tushopperinmobiliario
+    nombre: "Tu Shopper Inmobiliario"
+    dominio: tushopperinmobiliario.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi (sitio propio)"
+    busqueda: "https://www.tushopperinmobiliario.com/busqueda?tipo=Apartamento&ubicacion=Laureles"
+    filtros: "Apto · Laureles"
+    prueba_externa: "Consulta OK · 0 en Laureles"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Consulta ejecutada; 0 resultados para Laureles. Listado de venta con inventario."
+  - id: uribienes
+    nombre: "Uribienes Inmobiliaria"
+    dominio: uribienes.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Domus"
+    busqueda: "https://uribienes.com/inmuebles/venta"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈18 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Plataforma Domus: el parámetro de texto no filtra; filtrar por formulario o en la extracción."
+  - id: yepespropiedades
+    nombre: "Yepes Propiedades"
+    dominio: yepespropiedades.com
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "Wasi"
+    busqueda: "https://yepespropiedades.com/s/apartamento/ventas?id_property_type=2&business_type%5B0%5D=for_sale&match=laureles"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · 0 en Laureles"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Consulta ejecutada; 0 aptos en Laureles (foco Oriente). Sin el filtro lista 12 aptos en venta."
+  - id: zitios
+    nombre: "Zitios"
+    dominio: zitios.com.co
+    tipo: inmobiliaria
+    nivel: A
+    plataforma: "WordPress + plugin de inmuebles"
+    busqueda: "https://zitios.com.co/inmuebles/g/venta/t/apartamentos/n/laureles/"
+    filtros: "Venta · Apto · Laureles"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+  - id: merinohermanos
+    nombre: "Arrendamientos Merino Hermanos"
+    dominio: merinohermanos.com
+    tipo: inmobiliaria
+    nivel: B
+    plataforma: "Plataforma 'ver_inmueble'"
+    busqueda: "https://merinohermanos.com/"
+    filtros: "Formulario: Venta · Apto · Ciudad · Barrio"
+    prueba_externa: "Consulta OK · ≈6 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: ok        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "En la prueba externa solo respondió por formulario; con el motor de la aplicación sí se dejó leer (23-nov-2026)."
+  - id: confuturopropiedadraiz
+    nombre: "Confuturo Propiedad Raíz"
+    dominio: confuturopropiedadraiz.com
+    tipo: inmobiliaria
+    nivel: C
+    plataforma: "Propia"
+    busqueda: "https://www.confuturopropiedadraiz.com/usados-en-venta/venta"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Sitio en Wix; listado de usados en venta."
+  - id: coninsa
+    nombre: "Coninsa"
+    dominio: coninsa.co
+    tipo: inmobiliaria
+    nivel: C
+    plataforma: "Propia"
+    busqueda: "https://www.coninsa.co/venta-de-usados/inmuebles/"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈16 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Listado de usados en venta; filtros dentro de la aplicación."
+  - id: eme
+    nombre: "Eme Inmobiliaria"
+    dominio: eme.com.co
+    tipo: inmobiliaria
+    nivel: C
+    plataforma: "Propia"
+    busqueda: "https://www.eme.com.co/usados"
+    filtros: "—"
+    prueba_externa: "Consulta OK · ≈30 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Listado de usados en venta; los filtros son de la propia página (sin parámetros en la URL)."
+  - id: gsantamaria
+    nombre: "Grupo Santamaría"
+    dominio: gsantamaria.com
+    tipo: inmobiliaria
+    nivel: C
+    plataforma: "Propia"
+    busqueda: "https://www.gsantamaria.com/comprar"
+    filtros: "Venta"
+    prueba_externa: "Consulta OK · ≈10 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Listado 'comprar'; el buscador no expone parámetros en la URL."
+  - id: londonogomez
+    nombre: "Londoño Gómez"
+    dominio: londonogomez.com
+    tipo: inmobiliaria
+    nivel: C
+    plataforma: "Propia"
+    busqueda: "https://londonogomez.com/usados/viviendas"
+    filtros: "—"
+    prueba_externa: "Consulta OK · ≈12 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Listado de viviendas usadas; filtros sin parámetros en la URL."
+  - id: prointegral
+    nombre: "Prointegral"
+    dominio: prointegral.com
+    tipo: inmobiliaria
+    nivel: C
+    plataforma: "Propia (Nuxt)"
+    busqueda: "https://prointegral.com/properties/search?sip=Laureles"
+    filtros: "Laureles"
+    prueba_externa: "Consulta OK · ≈24 resultados"
+    permitida: true
+    por_defecto: false       # no se dejó leer en la prueba; se puede encender a mano
+    lectura: no_legible        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "La página de búsqueda acepta la ubicación en la URL (sip=Laureles), pero arranca en arriendo; pasar a Venta requiere un clic en su selector propio."
+  - id: umbral
+    nombre: "Umbral Propiedad Raíz"
+    dominio: umbral.co
+    tipo: inmobiliaria
+    nivel: C
+    plataforma: "WordPress"
+    busqueda: "https://umbral.co/ubicacion/apartamentos-en-medellin/"
+    filtros: "Apto · Ciudad"
+    prueba_externa: "Consulta OK · ≈3 resultados"
+    permitida: true
+    por_defecto: true
+    lectura: sin_resultados        # probado el 2026-11-23
+    revision_terminos: pendiente
+    nota: "Proyectos y usados por ciudad; no hay página de Laureles."
+
+# No se consultan: bloquean la consulta automática, no tienen inventario o el dominio no corresponde.
+descartadas:
+  - {nombre: "AG Inmobiliaria", dominio: "aginmobiliaria.com.co", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Ardila Gómez Propiedad Raíz", dominio: "ardilagomez.com.co", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Bienes de Antioquia", dominio: "bienesdeantioquia.com", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Centro Sur Inmobiliaria", dominio: "centrosur.com.co", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Cuadra por Cuadra Inmobiliaria", dominio: "cuadraporcuadra.com", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Inmobiliaria Excelentes Propiedades", dominio: "excelentespropiedades.com", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Inmobiliaria Antioquia", dominio: "inmobiliariaantioquia.com", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Maxibienes", dominio: "maxibienes.com", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Tierra Grata & Co", dominio: "tierragrata.co", motivo: "Protección anti-bot del hosting: redirige a una verificación que el RPA no supera. No apto para RPA"}
+  - {nombre: "Colliers Colombia", dominio: "colliers.com/es-co", motivo: "Bloqueo Cloudflare (HTTP 403). No apto para RPA"}
+  - {nombre: "Keller Williams Colombia", dominio: "kwcolombia.com", motivo: "Bloqueo Cloudflare (HTTP 403). No apto para RPA"}
+  - {nombre: "Simón Quintero Broker", dominio: "simonquintero.com", motivo: "Sin inventario ni buscador en el sitio"}
+  - {nombre: "Solubienes Propiedad Raíz", dominio: "solubienes.com", motivo: "Sin inventario publicado"}
+  - {nombre: "Makler Inmobiliarios", dominio: "makler.com.co", motivo: "Inventario mínimo, sin buscador"}
+  - {nombre: "Habitat Horizontal", dominio: "habitathorizontal.com", motivo: "Administración de centros comerciales; sin buscador residencial"}
+  - {nombre: "Medellin Advisors / Premium Propiedades", dominio: "medellinadvisors.com/es", motivo: "Asesoría a extranjeros; sin inventario consultable"}
+  - {nombre: "Inmobiliaria Gómez y Asociados", dominio: "inmobiliariagomezyasociados.com", motivo: "Dominio corresponde a inmobiliaria de Mendoza (Argentina)"}
+  - {nombre: "Inmobiliaria Ochoa", dominio: "inmobiliariaochoa.com", motivo: "Dominio corresponde a inmobiliaria de Honduras"}
+  - {nombre: "SuInmobiliaria", dominio: "suinmobiliaria.com", motivo: "Dominio en venta"}
+  - {nombre: "Arrendamientos Medellín", dominio: "arrendamientosmedellin.com", motivo: "Dominio en venta (GoDaddy)"}
+  - {nombre: "Inmobiliaria Medellín", dominio: "inmobiliariamedellin.com", motivo: "Dominio estacionado"}
+  - {nombre: "Colombia Sotheby's Realty", dominio: "colombiasothebysrealty.com", motivo: "Redirige a sitio ajeno"}
+  - {nombre: "Key Group", dominio: "keygroup.com.co", motivo: "Sitio vacío"}
+  - {nombre: "Atalaya Propiedad Raíz", dominio: "atalayapropiedadraiz.com", motivo: "Sitio en construcción"}
+  - {nombre: "Mitula", dominio: "mitula.com.co", motivo: "Bloqueó la consulta automática (HTTP 401). No se consulta"}
+  - {nombre: "Properati", dominio: "properati.com.co", motivo: "Bloqueó la consulta automática (HTTP 401). No se consulta"}

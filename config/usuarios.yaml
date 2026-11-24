@@ -1,0 +1,36 @@
+# USUARIOS con los que arranca la aplicacion: comerciales, supervisores y administradores.
+# Se crean en la base al arrancar si no existen. Lo que se sincroniza desde aqui en cada arranque:
+# nombre y activo. La clave NO: una vez creado el usuario, su clave vive solo en la base
+# (guardada con PBKDF2, nunca en texto) y se cambia con  python scripts\cambiar_clave.py <usuario>.
+#
+# Desde la version 2.2 los usuarios se gestionan en la pantalla del administrador (decision DU-36).
+# Un usuario que el administrador creo, cambio o elimino ya no se sincroniza desde este archivo:
+# para ese usuario manda la base. Los usuarios nuevos no hace falta escribirlos aqui.
+#
+# Clave inicial igual al usuario: pedido de Venture One para la fase de pruebas (decision D-28).
+# Antes de uso real hay que cambiarlas (A-14); iniciar.bat verificar avisa cuantas siguen asi.
+# Este archivo no entra en la huella de la configuracion: agregar comerciales no cambia las capturas.
+clave_inicial: igual_al_usuario
+
+comerciales:
+  - {usuario: comercial1,  nombre: "Comercial 1",  activo: true}
+  - {usuario: comercial2,  nombre: "Comercial 2",  activo: true}
+  - {usuario: comercial3,  nombre: "Comercial 3",  activo: true}
+  - {usuario: comercial4,  nombre: "Comercial 4",  activo: true}
+  - {usuario: comercial5,  nombre: "Comercial 5",  activo: true}
+  - {usuario: comercial6,  nombre: "Comercial 6",  activo: true}
+  - {usuario: comercial7,  nombre: "Comercial 7",  activo: true}
+  - {usuario: comercial8,  nombre: "Comercial 8",  activo: true}
+  - {usuario: comercial9,  nombre: "Comercial 9",  activo: true}
+  - {usuario: comercial10, nombre: "Comercial 10", activo: true}
+
+# SUPERVISORES (decision DU-11): ven el consolidado, fijan metas y registran seguimiento.
+# `supervisa: todos` o una lista de usuarios de comerciales, p. ej. [comercial1, comercial2].
+supervisores:
+  - {usuario: supervisor1, nombre: "Supervisor 1", activo: true, supervisa: todos}
+  - {usuario: supervisor2, nombre: "Supervisor 2", activo: true, supervisa: todos}
+
+# ADMINISTRADORES (decision DU-36): gestionan usuarios, inmobiliarias y respaldos.
+# No cotizan ni ven cotizaciones o clientes.
+administradores:
+  - {usuario: admin, nombre: "Administrador", activo: true}

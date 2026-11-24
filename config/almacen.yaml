@@ -1,0 +1,158 @@
+# ALMACEN ANALITICO (esquema en estrella) y su proceso ETL.
+# Aqui vive el criterio con el que los datos de la captura (Momento 1) y los insumos controlados de
+# Venture One (Momento 2) se conforman en dimensiones y hechos. Cambiar un valor cambia lo que
+# alimenta la ficha: registrar la decision en auditoria/decisiones.md.
+# Las reglas del calculo de la ficha siguen en parametros.yaml (oficial) y ficha.yaml (tecnico).
+version: "1.0"
+
+tiempo:
+  # Las marcas de la base operativa estan en UTC. Las fechas del almacen (dim_fecha, tableros y
+  # metas por mes) se llevan a la hora de Colombia, que no tiene horario de verano.
+  desfase_utc_horas: -5
+
+capturas:
+  estados_utilizables: [ok, parcial]      # solo estas alimentan hechos; las demas quedan en etl_rechazo con su motivo
+
+# --- Bases de mercado: de donde salen los comparables de una ficha -------------------------------
+# Nunca se mezclan dos bases en una misma estadistica. La ficha usa la primera base de
+# `preferencia` que alcance `minimo_para_preferir` comparables y reporta las demas aparte.
+bases_mercado:
+  muestra_v1:
+    etiqueta: "Anuncios de mercado de Venture One (muestra controlada)"
+    fuente_ficha: "data/anuncios_muestra.csv"
+    vinculo: zona                 # el inmueble entra por su zona de mercado (catalogo zonas_mercado)
+    exige_estado: true            # regla oficial: mismo estado canonico
+    coincidir: []                 # columnas extra que deben coincidir con el inmueble
+    operacion: venta              # la muestra es de venta; no trae la columna
+    tipo_inmueble: sin_especificar
+  oime:
+    etiqueta: "Ofertas OIME 2023 del Catastro de Medellín (precio pedido, histórico)"
+    fuente_ficha: "OIME 2023 · Subsecretaría de Catastro de Medellín"
+    vinculo: radio                # ofertas capturadas dentro del radio del predio
+    exige_estado: false           # la fuente no informa el estado del inmueble (decision AU-01)
+    coincidir: [tipo_inmueble]
+    operacion_comparable: venta   # los arriendos se cargan al almacen pero no son comparables de venta
+    # Mismo aviso publicado varias veces con otro identificador (hallazgo del perfil: 209 grupos).
+    claves_duplicado: [operacion, tipo_inmueble, area_m2, precio, lat_r, lng_r]
+    decimales_punto: 5            # redondeo de lat/lng para la clave (5 decimales, cerca de 1 m)
+  portales:
+    etiqueta: "Anuncios vigentes de inmobiliarias (búsqueda en línea)"
+    fuente_ficha: "Inmobiliarias y portales en línea · lectura con Claude Code"
+    vinculo: radio                # anuncios buscados para el barrio del predio; entran por la captura
+    # Los anuncios no traen coordenadas: no se mide distancia. La ficha dice de donde son.
+    ubicacion_comparables: "barrio del predio y barrios vecinos de su comuna, según cada anuncio (sin coordenadas: no se mide distancia)"
+    exige_estado: false           # los anuncios no declaran un estado comparable con los oficiales
+    coincidir: [tipo_inmueble]
+    operacion_comparable: venta
+    # El mismo inmueble publicado en dos sitios: misma operacion, tipo, area y precio.
+    claves_duplicado: [operacion, tipo_inmueble, area_m2, precio]
+    # Paso "Depuracion de anuncios" (antes del ETL, decision DU-33): el mismo inmueble publicado en dos sitios
+    # distintos con area y precio casi iguales. El repetido no se borra: sale de los comparables enlazado con
+    # su regla (R3_entre_sitios), su puntaje y el anuncio con el que coincide. Nunca se enlazan dos anuncios
+    # del mismo sitio: pueden ser unidades iguales de un edificio. Valores por calibrar (AU-21).
+    duplicados_entre_sitios:
+      activa: true
+      accion: enlazar               # enlazar = sale de los comparables | marcar = solo se cuenta, no sale
+      tolerancia_area_pct: 0.01     # 1 % : redondeos del area entre un sitio y otro
+      tolerancia_precio_pct: 0.02   # 2 % : precio con o sin administracion, o actualizado en un solo sitio
+      pesos_puntaje: {area: 0.5, precio: 0.5}
+      exigir_mismo_barrio: true     # si a alguno de los dos le falta el barrio, no se enlazan
+      iguales_si_existen: [habitaciones, banos]   # si los dos anuncios lo traen, debe coincidir
+preferencia: [portales, muestra_v1, oime]
+minimo_para_preferir: 3
+municipio_por_defecto: "Medellín"
+
+# --- Vigencia de los comparables (decision DU-21) ------------------------------------------------
+# Regla de Venture One: un comparable de una cotizacion no puede tener mas de 6 meses de publicado,
+# contados desde la fecha de la ficha. Lo que queda fuera no se borra: pasa a "referencia historica"
+# con su motivo. Los 11 casos del reto siguen la regla oficial, que no trae fechas.
+vigencia:
+  aplica_a: [cotizacion]                     # origen del inmueble: cotizacion | reto
+  max_meses_publicacion: 6
+  # Anuncio sin fecha de publicacion: fecha_observacion = vale el dia en que se vio publicado | excluir
+  sin_fecha_publicacion: fecha_observacion
+
+# --- Zonas de mercado de la muestra: que barrios forman cada zona (reconstruido de la muestra) ---
+# Un predio capturado entra a la zona si su barrio catastral esta en la lista (decision AU-02).
+zonas_mercado:
+  buenos_aires_el_salvador:
+    municipio: medellin
+    barrios: ["El Salvador", "Bombona No.1", "Buenos Aires", "La Milagrosa", "Las Palmas"]
+  castellana_laureles:
+    municipio: medellin
+    barrios: ["La Castellana", "Laureles", "Santa Teresita", "Simon Bolivar"]
+  ditaires_itagui:
+    municipio: itagui
+    barrios: ["Ditaires"]
+
+# Grafias que se llevan a un barrio conocido. Lo que no esta aqui conserva su texto y queda
+# marcado "sin revisar" en dim_ubicacion: no se adivina.
+barrios_alias:
+  "bombona no1": "Bombona No.1"
+  "bombona numero 1": "Bombona No.1"
+  "el salvador": "El Salvador"
+  "buenos aires": "Buenos Aires"
+  "la milagrosa": "La Milagrosa"
+  "las palmas": "Las Palmas"
+  "la castellana": "La Castellana"
+  "laureles": "Laureles"
+  "santa teresita": "Santa Teresita"
+  "simon bolivar": "Simon Bolivar"
+  "ditaires": "Ditaires"
+
+# --- Transporte masivo: a que sistema pertenece cada linea de la capa de estaciones ---------------
+# parametros.yaml (oficial) dice que sistemas cuentan como "estacion" para la ficha.
+transporte:
+  capa_estaciones: estaciones_masivo
+  lineas:
+    "Línea A": metro
+    "Línea B": metro
+    "Línea T-A": tranvia
+    "Línea H": metrocable
+    "Línea J": metrocable
+    "Línea K": metrocable
+    "Línea L": metrocable
+    "Línea M": metrocable
+    "Línea P": metrocable
+    "Línea 1": metroplus
+    "Línea 2": metroplus
+    "Línea O": metroplus
+
+# --- Entorno: categoria de la captura -> categoria que cuenta en la ficha (parametros.yaml) -------
+categorias_ficha:
+  educacion: educacion
+  salud: salud
+  parques: parques
+  abastecimiento: abastecimiento
+  seguridad: seguridad
+  cultura: cultura
+
+tipos_inmueble:
+  residencial: [apartamento, casa, estudio, casa_lote]
+  no_residencial: [oficina, local, bodega, consultorio, lote]
+
+# --- Controles de calidad del ETL (etl_calidad) --------------------------------------------------
+# resultado: ok | alerta (se informa) | falla (la corrida queda "con_fallas")
+calidad:
+  tolerancia_precio_m2_cop: 1.0           # |precio/area - precio_m2| aceptado
+  max_pct_ofertas_sin_fecha: 1.0          # la muestra oficial no trae fechas: se informa, no falla
+  max_pct_lugares_sin_nombre: 0.50
+  anios_oferta_vigente: 2                 # ofertas mas antiguas se marcan como historicas
+
+# Tipo de cada fuente de la muestra controlada (dim_fuente). Lo que no este aqui queda "sin_dato".
+fuentes_muestra:
+  fincaraiz: portal
+  metrocuadrado: portal
+  ciencuadras: portal
+  arrendamientos_santafe: inmobiliaria
+  facebook: informal
+  aviso_calle: informal
+  otra: informal
+
+# Nombre de cada municipio como se muestra (la clave es el texto sin tildes).
+municipios:
+  medellin: "Medellín"
+  itagui: "Itagüí"
+  envigado: "Envigado"
+  sabaneta: "Sabaneta"
+  bello: "Bello"

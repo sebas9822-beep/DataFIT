@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{titulo_pagina}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Hoja para el cliente: una página tamaño carta. La cifra es lo único grande; lo demás acompaña en voz baja. */
+@page { size: letter; margin: 15mm 17mm 13mm; }
+:root {
+  --tinta: #0a1628; --salvia: #7fa598; --salvia-osc: #3d6b5c; --crema: #f3e29a; --crema-suave: #fbf5db;
+  --gris: #586676; --raya: #d7dbd4; --papel: #ffffff;
+  --titular: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --texto: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: #e9ebe6; }
+body { font-family: var(--texto); color: var(--tinta); font-size: 11.5pt; line-height: 1.5;
+       -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.barra { display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap;
+         padding: 12px 20px; background: var(--tinta); color: #fff; font-size: 13px; position: sticky; top: 0; z-index: 2; }
+.barra button { font: 600 13px var(--texto); padding: 10px 18px; border: 0; border-radius: 3px; cursor: pointer;
+                background: var(--crema); color: var(--tinta); }
+.barra button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.barra span { opacity: .8; max-width: 54ch; }
+.hoja { width: 216mm; min-height: 279mm; margin: 22px auto; padding: 15mm 17mm 13mm; background: var(--papel);
+        box-shadow: 0 2px 18px rgba(10, 22, 40, .16); display: flex; flex-direction: column; }
+.cab { display: flex; justify-content: space-between; align-items: center; padding-bottom: 9px;
+       border-bottom: 2px solid var(--tinta); }
+.marca { display: flex; align-items: center; gap: 10px; font: 700 15pt var(--titular); letter-spacing: .02em; }
+.sello { display: grid; place-items: center; width: 30px; height: 30px; border: 2px solid var(--tinta);
+         font: 700 11pt var(--titular); }
+.fecha { font-size: 10pt; color: var(--gris); }
+.inmueble { padding: 20px 0 6px; }
+.para { font-size: 10.5pt; color: var(--gris); }
+h1 { font: 600 30pt/1.05 var(--titular); margin: 4px 0 8px; }
+.donde { font-size: 12pt; }
+.rasgos { font-size: 11pt; color: var(--gris); margin-top: 2px; }
+h2 { font: 600 13.5pt var(--titular); letter-spacing: .01em; margin-bottom: 5px; }
+.resultado { margin: 16px 0 6px; padding: 18px 22px 16px; background: var(--crema-suave); border-left: 6px solid var(--salvia); }
+.resultado h2 { color: var(--salvia-osc); }
+.cifra { font: 700 46pt/1 var(--titular); margin: 2px 0 8px; }
+.cifra span { font: 500 16pt var(--titular); color: var(--gris); }
+.total { font-size: 12.5pt; }
+.total b { font-weight: 600; }
+.rango { margin: 16px 0 8px; }
+.pista { position: relative; height: 16px; border: 1.5px solid var(--tinta); background: var(--papel); }
+.banda { position: absolute; top: -1.5px; bottom: -1.5px; background: var(--salvia); border: 1.5px solid var(--tinta); }
+.centro { position: absolute; top: -7px; bottom: -7px; width: 0; border-left: 3px solid var(--tinta); }
+.extremos { display: flex; justify-content: space-between; margin-top: 9px; font-size: 9.5pt; color: var(--gris); }
+.extremos b { display: block; color: var(--tinta); font-weight: 600; font-size: 10.5pt; }
+.extremos span:last-child { text-align: right; }
+.lectura { font-size: 11pt; }
+.firmeza { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--raya); font-size: 10.5pt; }
+.sin-referencia p { font-size: 12.5pt; }
+.dos { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 16px; }
+.dos p, .dos li { font-size: 10.5pt; }
+.dos ul { list-style: none; }
+.dos li { padding: 3px 0; border-bottom: 1px solid var(--raya); display: flex; justify-content: space-between; gap: 12px; }
+.dos li b { font-weight: 600; white-space: nowrap; }
+.dos .cerca { margin-bottom: 5px; }
+footer { margin-top: auto; padding-top: 14px; }
+.nota { font-size: 9pt; color: var(--gris); border-top: 1px solid var(--raya); padding-top: 9px; }
+.pie { display: flex; justify-content: space-between; gap: 16px; margin-top: 7px; font-size: 9pt; color: var(--gris); }
+@media (max-width: 860px) { .hoja { width: auto; min-height: 0; margin: 0; padding: 22px 18px; box-shadow: none; }
+  .dos { grid-template-columns: 1fr; gap: 16px; } .cifra { font-size: 36pt; } h1 { font-size: 24pt; } }
+@media print {
+  html { background: none; }
+  .barra { display: none; }
+  .hoja { width: auto; min-height: 250mm; margin: 0; padding: 0; box-shadow: none; }
+  .resultado, .dos { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="barra">
+  <button type="button" onclick="window.print()">Imprimir o guardar como PDF</button>
+  <span>En la ventana de impresión elige «Guardar como PDF» si la vas a enviar por correo o por WhatsApp.</span>
+</div>
+<main class="hoja">
+  <header class="cab">
+    <div class="marca"><span class="sello">V1</span>Venture One</div>
+    <div class="fecha">{{fecha}}</div>
+  </header>
+  <section class="inmueble">
+    <p class="para">{{para}}</p>
+    <h1>{{titulo}}</h1>
+    <p class="donde">{{donde}}</p>
+    <p class="rasgos">{{rasgos}}</p>
+  </section>
+{{resultado}}
+  <div class="dos">
+{{entorno}}
+    <section>
+      <h2>Cómo se obtuvo</h2>
+      <p>{{como}}</p>
+    </section>
+  </div>
+  <footer>
+    <p class="nota">{{nota}}</p>
+    <div class="pie"><span>{{asesor}}</span><span>{{referencia}}</span></div>
+  </footer>
+</main>
+{{guion}}
+</body>
+</html>

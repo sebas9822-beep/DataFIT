@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Venture One · Captura, almacén y ficha del inmueble</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a1628'/%3E%3Crect x='4' y='4' width='24' height='24' fill='none' stroke='%23f3e29a' stroke-width='2'/%3E%3Ctext x='16' y='21' font-family='Arial' font-weight='700' font-size='12' text-anchor='middle' fill='%23f3e29a'%3EV1%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a1628; --ink-soft:#14253b; --accent:#7fa598; --accent-soft:#b8cfc6;
+  --cream:#f3e29a; --cream-soft:#fbf5db; --muted:#6b7a8a; --alerta:#e08a6d;
+  --surface:#fafaf7; --surface-alt:#f2f1ec; --surface-card:#edece6; --white:#fff;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif;
+  --body:"Inter",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --rail:372px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--body);background:var(--surface);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+::selection{background:var(--cream);color:var(--ink)}
+:focus-visible{outline:2px solid var(--cream);outline-offset:2px}
+
+.ticker{position:fixed;top:0;left:0;right:0;height:36px;background:var(--ink);color:rgba(243,226,154,.6);z-index:80;display:flex;align-items:center;overflow:hidden;font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.06)}
+.ticker-track{display:flex;gap:48px;white-space:nowrap;animation:tick 60s linear infinite;padding-left:24px}
+.ticker-track b{color:var(--cream);font-weight:700}
+.ticker-track i{color:var(--accent);font-style:normal;margin:0 14px}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+.app{position:fixed;inset:36px 0 0 0;display:grid;grid-template-columns:var(--rail) 1fr}
+.rail{background:var(--ink);color:var(--surface);display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden}
+.rail::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at -10% -10%,rgba(127,165,152,.22),transparent 60%),radial-gradient(400px 260px at 120% 110%,rgba(243,226,154,.10),transparent 60%);pointer-events:none}
+.rail-scroll{flex:1;overflow:auto;position:relative;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;padding-bottom:12px}
+.brand{padding:20px 24px 14px;display:flex;align-items:center;gap:12px;position:relative}
+.brand-mark{width:38px;height:38px;border:1.5px solid var(--cream);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:17px;color:var(--cream)}
+.brand-txt b{display:block;font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:.04em;line-height:1;text-transform:uppercase}
+.brand-txt small{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent-soft)}
+.bloque{padding:10px 24px 6px;position:relative}
+.paso{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.paso b{font-family:var(--display);font-weight:800;font-size:26px;color:transparent;-webkit-text-stroke:1px var(--accent);line-height:1}
+.paso span{font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-soft)}
+.campo{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:4px 4px 4px 14px;border-radius:999px;transition:border-color .3s}
+.campo:focus-within{border-color:var(--accent)}
+.campo input{background:none;border:0;outline:0;flex:1;min-width:0;font-size:13.5px;color:var(--surface);padding:8px 0}
+.campo input::placeholder{color:rgba(250,250,247,.42)}
+.campo.simple{padding:4px 14px}
+#ac-host{flex:1;min-width:0}
+#ac-host:empty{display:none}
+gmp-place-autocomplete{width:100%}
+.nota{font-size:11.5px;color:rgba(250,250,247,.55);margin-top:8px;line-height:1.45}
+.nota b{color:var(--cream);font-weight:600}
+.nota .mal{color:#f2b4a0}
+/* ---- ingreso ---- */
+.acceso{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:var(--ink);color:var(--surface);overflow:auto;padding:24px}
+.acceso::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 380px at 8% 0%,rgba(127,165,152,.26),transparent 60%),radial-gradient(520px 320px at 100% 100%,rgba(243,226,154,.12),transparent 60%);pointer-events:none}
+.acceso.on{display:grid}
+.acceso-caja{position:relative;width:min(400px,100%);display:grid;gap:14px}
+.acceso-caja .brand-mark{width:54px;height:54px;font-size:22px}
+.acceso-caja h1{font-family:var(--display);font-weight:800;font-size:46px;line-height:.9;text-transform:uppercase;letter-spacing:-.01em;margin:8px 0 6px}
+.acceso-caja h1 em{display:block;font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;color:var(--accent);font-size:26px;letter-spacing:0;margin-top:10px}
+.acceso-caja label{font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(250,250,247,.6);display:grid;gap:7px}
+.acceso-caja input{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:13px 18px;font-size:15px;color:var(--surface);outline:0;letter-spacing:0;text-transform:none;font-weight:400}
+.acceso-caja input:focus{border-color:var(--accent)}
+.acceso-error{min-height:18px;font-size:12.5px;color:#f2b4a0}
+.acceso-pie{font-size:11px;color:rgba(250,250,247,.45);text-align:center;line-height:1.5}
+/* ---- sesión y cliente en el panel ---- */
+.sesion{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 24px 6px;padding:9px 8px 9px 14px;border-radius:12px;background:rgba(255,255,255,.05);font-size:12.5px;position:relative}
+.sesion b{font-weight:600;display:block}
+.sesion small{display:block;color:rgba(250,250,247,.5);font-size:10.5px}
+.bloque.bloqueado{opacity:.3;pointer-events:none;filter:saturate(.4)}
+/* Formulario por pasos: el paso abierto se destaca, los hechos se pliegan a una línea y se pueden reabrir */
+.bloque[data-paso]{transition:background .5s var(--ease),opacity .5s var(--ease),filter .5s var(--ease);border-left:2px solid transparent}
+.bloque[data-paso].activo{background:linear-gradient(90deg,rgba(127,165,152,.13),rgba(127,165,152,0) 85%);border-left-color:var(--accent)}
+.bloque[data-paso] .paso{cursor:pointer;flex-wrap:wrap;row-gap:2px}
+.bloque[data-paso] .paso em{flex-basis:100%;font-style:normal;font-size:12px;color:var(--cream);line-height:1.35;padding-left:38px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bloque[data-paso] .paso em:empty{display:none}
+.bloque[data-paso].hecho .paso b{-webkit-text-stroke:0;color:var(--accent)}
+.cuerpo{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .5s var(--ease),opacity .35s var(--ease)}
+.cuerpo-in{overflow:hidden;min-height:0;padding-bottom:6px}
+.bloque.plegado .cuerpo{grid-template-rows:0fr;opacity:0}
+.bloque.plegado{padding-bottom:0}
+.req,.opc{font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:2px 6px;border-radius:999px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.req{background:var(--cream);color:var(--ink)}
+.opc{border:1px solid rgba(255,255,255,.28);color:rgba(250,250,247,.62)}
+.claro-form .req{background:var(--ink);color:var(--cream)} .claro-form .opc{border-color:rgba(10,22,40,.25);color:var(--muted)}
+.guia-campos{padding:2px 24px 0;font-size:10.5px;color:rgba(250,250,247,.5)}
+.cmp{display:grid;grid-template-rows:1fr;transition:grid-template-rows .4s var(--ease),opacity .3s var(--ease),margin .4s var(--ease);margin-top:8px}
+.cmp>div{overflow:hidden;min-height:0}
+.cmp.oculto{grid-template-rows:0fr;opacity:0;margin-top:0;pointer-events:none}
+.cmp .rot{margin:0 0 5px}
+.extra{display:grid;grid-template-columns:1fr 1fr 30px;gap:6px;margin-top:6px;animation:entra .35s var(--ease) both}
+.extra button{border-radius:999px;border:1px solid rgba(255,255,255,.2);color:rgba(250,250,247,.7);font-size:15px;line-height:1}
+.claro-form .extra button{border-color:rgba(10,22,40,.2);color:var(--ink)}
+.enlace{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-soft);padding:8px 0;text-align:left}
+.enlace:hover{color:var(--cream)} .claro-form .enlace{color:var(--viz-osc)}
+.lista-barrios{display:grid;gap:4px;margin-top:8px}
+.lista-barrios button{text-align:left;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:12.5px;color:var(--surface);animation:entra .3s var(--ease) both;transition:border-color .3s,background .3s}
+.lista-barrios button:hover{border-color:var(--accent);background:rgba(127,165,152,.16)}
+.lista-barrios small{display:block;color:rgba(250,250,247,.55);font-size:11px}
+.chip.no{border-style:dashed;opacity:.5;cursor:not-allowed;text-decoration:line-through}
+.lista-portales{max-height:236px;overflow:auto;margin-top:8px;padding:2px 4px 2px 0;align-content:flex-start}
+.lista-portales .rot{flex-basis:100%;margin:8px 0 2px}
+.lista-portales .chip{font-size:9px;padding:6px 9px;letter-spacing:.08em}
+.lista-portales .chip.duda{border-style:dotted}
+.acciones-portales{display:flex;flex-wrap:wrap;gap:0 16px}
+.panel.dark details summary{cursor:pointer;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--cream);padding:10px 0}
+@keyframes entra{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(23,138,102,.45)}100%{box-shadow:0 0 0 18px rgba(23,138,102,0)}}
+#vista>.sec,#vista>.kpis,#vista>.hero,#vista>.vacio{animation:entra .7s var(--ease) both}
+#vista>.sec:nth-of-type(2){animation-delay:.08s}#vista>.sec:nth-of-type(3){animation-delay:.16s}#vista>.sec:nth-of-type(4){animation-delay:.24s}
+.tres.vivo div{transition:border-color .5s var(--ease),background .5s var(--ease),transform .5s var(--ease)}
+.tres.vivo div.lleno{border-color:var(--viz);background:#f2f8f5}
+.tres.vivo div.ahora{transform:translateY(-4px);border-color:var(--ink)}
+.tres.vivo div.pulso{animation:pulso .9s var(--ease)}
+.tres.vivo strong{font-size:19px;line-height:1.05;overflow-wrap:anywhere}
+.tres.vivo small{display:block;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.of-tabla td,.of-tabla th{white-space:nowrap}
+.portal{display:flex;align-items:baseline;gap:8px;padding:8px 0;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px}
+.portal b{font-weight:600}.portal small{color:#b8cfc6;flex:1}
+.panel.dark a{color:var(--cream)}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:11.5px;color:rgba(250,250,247,.72);margin-top:12px;line-height:1.45;cursor:pointer}
+.check input{accent-color:var(--cream);margin-top:2px;flex:none;width:15px;height:15px}
+.ficha-cliente{padding:12px 10px 12px 14px;border-radius:14px;background:rgba(243,226,154,.1);border:1px solid rgba(243,226,154,.28);font-size:12px;line-height:1.5;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center}
+.ficha-cliente strong{display:block;font-family:var(--display);font-size:20px;font-weight:700;line-height:1.05}
+.ficha-cliente small{color:rgba(250,250,247,.62)}
+[hidden]{display:none!important}
+.punto{margin-top:10px;padding:12px 14px;border-radius:14px;background:rgba(127,165,152,.14);font-size:12.5px;line-height:1.5;display:none}
+.punto.on{display:block}
+.punto strong{display:block;font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:.01em}
+.punto code{font-family:var(--mono);font-size:11px;color:var(--accent-soft)}
+.rot{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(250,250,247,.5);display:block;margin:12px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:7px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.16);color:rgba(250,250,247,.6);transition:all .3s var(--ease)}
+.chip:hover{border-color:var(--accent);color:var(--surface)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.chip[disabled]{border-style:dashed;opacity:.45;cursor:not-allowed}
+.btn{position:relative;overflow:hidden;text-decoration:none;border-radius:999px;padding:13px 18px;font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:color .4s;white-space:nowrap}
+.btn::after{content:"";position:absolute;inset:0;transform:translateY(-101%);transition:transform .5s var(--ease);z-index:0}
+.btn:hover::after{transform:translateY(0)}
+.btn > *{position:relative;z-index:1}
+.btn-cream{background:var(--cream);color:var(--ink)}
+.btn-cream::after{background:var(--accent)}
+.btn-ghost{border:1px solid rgba(255,255,255,.22);color:var(--surface);padding:9px 14px}
+.btn-ghost::after{background:var(--surface)}
+.btn-ghost:hover{color:var(--ink)}
+.btn-ink{background:var(--ink);color:var(--cream)}
+.btn-ink::after{background:var(--accent)}
+.btn-ink:hover{color:var(--ink)}
+.btn-line{border:1px solid rgba(10,22,40,.18);color:var(--ink)}
+.btn-line::after{background:var(--ink)}
+.btn-line:hover{color:var(--cream)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.btn-grande{width:100%;padding:16px;font-size:12px;margin-top:14px}
+.pasos{display:grid;gap:2px;margin-top:6px}
+.pp{display:grid;grid-template-columns:18px 1fr;gap:10px;padding:7px 0;font-size:12.5px;align-items:start}
+.pp i{width:10px;height:10px;border-radius:50%;margin-top:4px;border:1.5px solid rgba(255,255,255,.3)}
+.pp.en_curso i{border-color:var(--cream);background:var(--cream);animation:late 1s ease-in-out infinite}
+.pp.ok i{background:var(--accent);border-color:var(--accent)}
+.pp.parcial i{background:var(--cream);border-color:var(--cream)}
+.pp.error i{background:var(--alerta);border-color:var(--alerta)}
+.pp.omitido i{border-style:dashed}
+.pp small{display:block;color:rgba(250,250,247,.5);font-size:11px;line-height:1.35;margin-top:1px}
+.pp-n{display:inline-block;min-width:1.7em;color:rgba(250,250,247,.45);font-variant-numeric:tabular-nums}
+.pp-grupo{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:14px 0 2px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,.14)}
+.pp-grupo:first-child{margin-top:2px}
+.pp-grupo b{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-soft)}
+.pp-grupo span{font-size:11px;color:rgba(250,250,247,.5)}
+@keyframes late{50%{opacity:.25}}
+.capas{margin:2px 0 4px 28px;font-size:10.5px;color:rgba(250,250,247,.5);line-height:1.6}
+.capas b{color:var(--accent-soft);font-weight:600}
+.card{position:relative;display:grid;gap:2px;padding:11px 12px;border-radius:12px;cursor:pointer;transition:background .3s var(--ease);width:100%;text-align:left}
+.card:hover{background:rgba(255,255,255,.06)}
+.card.active{background:rgba(127,165,152,.16)}
+.card.active::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--cream)}
+.card b{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card small{font-size:10.5px;color:rgba(250,250,247,.55)}
+.card.sin{cursor:default;opacity:.55}
+.card.sin:hover{background:none}
+.card em{font-style:normal;color:var(--cream)}
+.rail-foot{padding:10px 24px 14px;border-top:1px solid rgba(255,255,255,.07);position:relative;font-size:10px;color:rgba(250,250,247,.45);letter-spacing:.04em;line-height:1.5}
+
+.stage{position:relative;overflow:auto;scroll-behavior:smooth;min-height:0}
+.mapa-caja{position:sticky;top:0;height:44vh;min-height:280px;z-index:5;background:var(--surface-card);border-bottom:1px solid rgba(10,22,40,.1);transition:height .5s var(--ease),min-height .5s var(--ease)}
+.mapa-caja.chico{height:132px;min-height:132px}
+.mapa-caja.chico .leyenda{display:none}
+.mapa-btn{position:absolute;right:12px;bottom:26px;z-index:500;background:var(--ink);color:var(--cream);padding:8px 14px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.pin-v1{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ink);border:2.5px solid var(--cream);box-shadow:0 6px 14px -4px rgba(10,22,40,.6)}
+.pin-v1::after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--cream)}
+#mapa{position:absolute;inset:0}
+.mapa-aviso{position:absolute;left:16px;bottom:16px;z-index:500;background:rgba(10,22,40,.9);color:var(--surface);padding:9px 14px;border-radius:999px;font-size:11px;letter-spacing:.04em;pointer-events:none}
+.leyenda{position:absolute;right:12px;top:12px;z-index:500;background:rgba(250,250,247,.95);border-radius:14px;padding:10px 12px;display:none;gap:5px;font-size:11px;box-shadow:0 8px 24px -10px rgba(10,22,40,.4);max-width:190px}
+.leyenda.on{display:grid}
+.leyenda button{display:flex;align-items:center;gap:7px;text-align:left;font-size:11px}
+.leyenda button.off{opacity:.35;text-decoration:line-through}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.stage-inner{max-width:1180px;margin:0 auto;padding:0 44px 110px}
+.vacio{padding:56px 0 20px}
+.vacio h1{font-family:var(--display);font-weight:800;font-size:clamp(48px,6vw,84px);text-transform:uppercase;line-height:.86;letter-spacing:-.03em}
+.vacio h1 em{font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;color:var(--accent);letter-spacing:0}
+.vacio p{font-family:var(--serif);font-size:22px;color:var(--muted);margin:18px 0 26px;max-width:680px;line-height:1.25}
+.tres{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tres div{background:var(--white);border:1px solid rgba(10,22,40,.07);border-radius:20px;padding:22px}
+.tres b{font-family:var(--display);font-size:44px;font-weight:800;color:transparent;-webkit-text-stroke:1.3px var(--accent);line-height:.8;display:block;margin-bottom:10px}
+.tres strong{font-family:var(--display);font-size:22px;text-transform:uppercase;letter-spacing:.01em;display:block;margin-bottom:6px}
+.tres span{font-size:13px;color:var(--muted);line-height:1.5}
+
+.hero{padding:34px 0 26px;border-bottom:1px solid rgba(10,22,40,.08)}
+.hero-pie{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:18px}
+.eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:28px;height:1px;background:var(--accent)}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,3.4vw,46px);line-height:1.05;margin-top:10px}
+.hero h1 em{color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;border-radius:999px;background:var(--surface-card);display:inline-flex;align-items:center;gap:7px}
+.tag.ink{background:var(--ink);color:var(--cream)}
+.tag.sage{background:var(--accent-soft)}
+.tag.cream{background:var(--cream)}
+.tag.alerta{background:var(--alerta);color:var(--white)}
+.tag code{font-family:var(--mono);letter-spacing:0;text-transform:none;font-size:11px}
+.acciones{display:flex;gap:8px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid rgba(10,22,40,.08)}
+.kpi{padding:24px 18px 22px 0}
+.kpi + .kpi{padding-left:18px;border-left:1px solid rgba(10,22,40,.08)}
+.kpi label{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.kpi .v{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:-.02em}
+.kpi .s{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.35}
+.sec{padding:58px 0 0}
+.sec-head{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:end;margin-bottom:26px}
+.sec-num{font-family:var(--display);font-weight:800;font-size:76px;line-height:.75;color:transparent;-webkit-text-stroke:1.5px var(--accent);letter-spacing:-.04em}
+.sec-title{font-family:var(--display);font-weight:800;font-size:44px;text-transform:uppercase;letter-spacing:-.025em;line-height:.9}
+.sec-title em{font-family:var(--serif);font-weight:400;text-transform:none;font-style:italic;color:var(--accent);letter-spacing:0;font-size:.92em}
+.sec-lead{font-size:13.5px;color:var(--muted);max-width:780px;margin-top:8px;line-height:1.55}
+.panel{background:var(--white);border:1px solid rgba(10,22,40,.07);border-radius:22px;padding:26px;position:relative;overflow:hidden}
+.panel.dark{background:var(--ink);color:var(--surface);border-color:transparent}
+.panel.alt{background:var(--surface-alt)}
+.panel h4{font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;justify-content:space-between;gap:12px}
+.panel.dark h4{color:var(--accent-soft)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g-7-5{display:grid;grid-template-columns:7fr 5fr;gap:18px}
+.mt{margin-top:18px}
+.fact{display:grid;grid-template-columns:170px 1fr;gap:16px;padding:12px 0;border-bottom:1px dashed rgba(10,22,40,.1);font-size:13.5px}
+.fact:last-child{border-bottom:0}
+.fact dt{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.fact dd small{color:var(--muted);display:block;font-size:11.5px;margin-top:2px}
+.fact code,.t code{font-family:var(--mono);font-size:12px;background:var(--surface-alt);padding:2px 6px;border-radius:5px}
+.coord{font-family:var(--display);font-size:42px;font-weight:700;line-height:1}
+.coord small{display:block;font-family:var(--body);font-size:10px;font-weight:600;letter-spacing:.22em;color:var(--accent-soft);margin-bottom:4px;text-transform:uppercase}
+.kv{display:grid;gap:10px;font-size:13px;margin-top:18px}
+.kv div{display:flex;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px dashed rgba(255,255,255,.14)}
+.kv div:last-child{border:0;padding:0}
+.kv span{color:var(--accent-soft);font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.kv b{font-weight:600;text-align:right}
+.conj{display:flex;gap:8px;margin-top:14px}
+.conj input{flex:1;min-width:0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:9px 14px;font-size:13px;color:var(--surface);outline:0}
+.equip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.eq{background:var(--surface-alt);border-radius:16px;padding:16px;text-align:left;transition:transform .3s var(--ease),opacity .3s;border:1.5px solid transparent}
+.eq:hover{transform:translateY(-2px)}
+.eq.off{opacity:.4}
+.eq .cab{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.eq b{display:block;font-family:var(--display);font-size:40px;font-weight:700;line-height:1;margin-top:10px}
+.eq small{font-size:11.5px;color:var(--muted)}
+.eq.cero b{color:var(--muted)}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+.t th{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid rgba(10,22,40,.12);white-space:nowrap}
+.t th.r,.t td.r{text-align:right}
+.t td{padding:11px 12px;border-bottom:1px solid rgba(10,22,40,.06);vertical-align:top;font-variant-numeric:tabular-nums}
+.t tbody tr:hover{background:var(--cream-soft)}
+.t td.nw{white-space:nowrap}
+.t td.largo{min-width:240px;max-width:420px;overflow-wrap:break-word}
+.src{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--surface-card);white-space:nowrap}
+.src.ok{background:var(--accent-soft)} .src.parcial{background:var(--cream)} .src.error,.src.bloqueado,.src.fallo_estructura{background:var(--alerta);color:#fff} .src.omitida{border:1.5px dashed var(--muted);background:none}
+.src.si{background:var(--accent-soft)} .src.no{background:var(--surface-card);text-decoration:line-through}
+details{border-bottom:1px solid rgba(10,22,40,.07)}
+details summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 2px;font-size:13.5px;font-weight:600}
+details summary::-webkit-details-marker{display:none}
+details summary span.n{margin-left:auto;font-family:var(--display);font-size:20px;font-weight:700}
+.lugar{display:grid;grid-template-columns:1fr auto;gap:12px;padding:8px 2px 8px 22px;font-size:12.5px;border-top:1px dashed rgba(10,22,40,.08)}
+.lugar small{color:var(--muted)}
+.lugar b{font-family:var(--display);font-size:16px;font-weight:700;white-space:nowrap}
+.barra{display:grid;grid-template-columns:150px 1fr 70px;gap:12px;align-items:center;font-size:12.5px;padding:6px 0}
+.barra label{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.barra div{height:10px;background:var(--surface-card);border-radius:5px;overflow:hidden}
+.barra div i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.barra b{font-family:var(--display);font-size:18px;text-align:right}
+.barra .anillo{position:relative;background:none}
+.barra .anillo i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.anillo-n{font-size:11px;color:var(--muted);margin:-3px 0 9px 162px}
+.anillo-ley{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin:-6px 0 12px}
+.anillo-ley i{display:inline-block;width:14px;height:8px;border-radius:4px;background:var(--ink);margin-right:5px}
+.aviso{background:var(--cream-soft);border-left:3px solid var(--cream);padding:10px 14px;border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.5;margin-bottom:8px}
+.obs{font-family:var(--serif);font-size:19px;line-height:1.3;margin-bottom:10px;color:var(--surface)}
+.grande{font-family:var(--display);font-weight:800;font-size:56px;line-height:.9;letter-spacing:-.02em}
+.grande small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:6px}
+.panel.dark .grande small{color:var(--accent-soft)}
+.disclaimer{margin-top:64px;padding:38px 42px;border-radius:26px;background:var(--ink);color:var(--surface);position:relative;overflow:hidden}
+.disclaimer p{font-family:var(--serif);font-size:25px;line-height:1.25;max-width:860px}
+.disclaimer small{display:block;margin-top:18px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-soft);font-family:var(--mono);line-height:1.7}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,30px);background:var(--ink);color:var(--cream);padding:12px 20px;border-radius:999px;font-size:12px;font-weight:600;z-index:99;opacity:0;transition:all .4s var(--ease);max-width:80vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.mal{background:var(--alerta);color:#fff}
+
+/* =================== APLICACIÓN ÚNICA: inmueble, ficha, gestión y supervisión =================== */
+:root{--viz:#178a66;--viz-osc:#14503f;--viz-cla:#74bfa3;--viz-pista:#d6ebe2;--viz-gris:#c5cac4}
+body.sup .solo-comercial,body.adm .solo-comercial{display:none!important}
+body:not(.sup) .solo-supervisor{display:none!important}
+body:not(.adm) .solo-admin{display:none!important}
+body.sup .mapa-caja,body.adm .mapa-caja{display:none}
+/* Administración y estado con el cliente */
+.adm-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 14px;align-items:end}
+.adm-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:600;color:var(--muted)}
+.adm-form label.ancho{grid-column:span 2} .adm-form label.todo{grid-column:1/-1}
+.adm-form .claro{width:100%} .adm-form .marca{flex-direction:row;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--ink);padding-bottom:9px}
+.adm-form .acciones{grid-column:1/-1}
+.fila-accion{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.fila-accion .btn{padding:7px 12px}
+.confirma{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--cream-soft);border-left:3px solid var(--alerta);padding:10px 12px;border-radius:0 10px 10px 0;font-size:12.5px}
+.confirma .claro{flex:1;min-width:180px}
+.t tr.apagado td{color:var(--muted)} .t tr.apagado td b{font-weight:500}
+.gestion-cli{border:1px solid rgba(10,22,40,.1);border-radius:16px;padding:16px 18px;margin:18px 0 4px;background:var(--surface)}
+.gestion-cli h5{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.gestion-cli .opciones{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.gestion-cli .opciones button{font:inherit;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:999px;border:1.5px solid rgba(10,22,40,.2);background:var(--white);color:var(--ink);cursor:pointer}
+.gestion-cli .opciones button[aria-pressed="true"]{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.gestion-cli .opciones button:focus-visible{outline:2px solid var(--viz);outline-offset:2px}
+.gestion-cli .detalle{display:grid;grid-template-columns:220px 1fr;gap:10px;margin-bottom:10px}
+.gestion-cli .detalle .claro{width:100%}
+.gestion-cli ol{list-style:none;margin-top:8px} .gestion-cli ol li{font-size:12.5px;padding:7px 0;border-top:1px solid rgba(10,22,40,.07)}
+.gestion-cli ol li small{color:var(--muted)}
+.estado-cli{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.12);margin-top:5px}
+.estado-cli.por_entregar{background:var(--cream);color:var(--ink)} .estado-cli.rechazada{background:var(--alerta);color:#fff} .estado-cli.aceptada{background:var(--accent);color:var(--ink)}
+.historia-cli{flex:0 0 100%;font-size:12px} .historia-cli ul{margin:6px 0 0;padding:0} .historia-cli summary{cursor:pointer;color:var(--accent-soft);font-weight:600}
+.historia-cli li{list-style:none;padding:6px 0;border-top:1px solid rgba(255,255,255,.1);color:rgba(250,250,247,.8)}
+@media (max-width:1100px){.adm-form{grid-template-columns:repeat(2,minmax(0,1fr))} .gestion-cli .detalle{grid-template-columns:1fr}}
+.fila2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fila3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.oscuro{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 14px;font:inherit;font-size:13px;color:var(--surface);outline:0;width:100%;min-width:0;transition:border-color .3s}
+.oscuro:focus{border-color:var(--accent)}
+.oscuro::placeholder{color:rgba(250,250,247,.42)}
+select.oscuro{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--accent-soft) 50%),linear-gradient(135deg,var(--accent-soft) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
+select.oscuro option{color:var(--ink);background:var(--white)}
+.rot.chica{margin:8px 0 5px}
+.gestion{margin:0 24px 8px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);font-size:12px;position:relative}
+.gestion h5{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(250,250,247,.5);margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.gestion h5 b{color:var(--cream);font-weight:700;letter-spacing:.04em}
+.gestion .pista{height:8px;border-radius:4px;background:rgba(127,165,152,.25);overflow:hidden}
+.gestion .pista i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.gestion .seg-nota{margin-top:10px;padding-top:9px;border-top:1px dashed rgba(255,255,255,.14);line-height:1.45;color:rgba(250,250,247,.82)}
+.gestion .seg-nota small{display:block;color:rgba(250,250,247,.5);font-size:10.5px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.12em}
+.nav{display:grid;gap:3px}
+.nav button{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:12px 14px;border-radius:12px;font-size:13px;font-weight:600;color:rgba(250,250,247,.72);transition:background .3s var(--ease),color .3s}
+.nav button:hover{background:rgba(255,255,255,.06);color:var(--surface)}
+.nav button.on{background:rgba(127,165,152,.18);color:var(--surface);box-shadow:inset 3px 0 0 var(--cream)}
+.nav button small{font-size:10.5px;font-weight:500;color:rgba(250,250,247,.5)}
+.card .fch{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:rgba(127,165,152,.3);color:var(--surface);margin-left:6px}
+.card .fch.pend{background:rgba(224,138,109,.35)}
+
+/* ---- controles sobre fondo claro ---- */
+.claro{background:var(--white);border:1px solid rgba(10,22,40,.16);border-radius:999px;padding:9px 14px;font:inherit;font-size:13px;color:var(--ink);outline:0;min-width:0}
+.claro:focus{border-color:var(--viz)}
+textarea.claro{border-radius:16px;resize:vertical;min-height:74px;width:100%;line-height:1.45}
+.filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 0}
+.filtros label{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px}
+.filtros .sep{flex:1}
+.pildoras{display:flex;gap:4px;background:var(--surface-card);border-radius:999px;padding:3px}
+.pildoras button{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:7px 12px;border-radius:999px;color:var(--muted)}
+.pildoras button.on{background:var(--ink);color:var(--cream)}
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:end}
+.form-grid label,.campo-claro{display:grid;gap:6px;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.form-grid .ancho{grid-column:1/-1}
+.t input.claro{width:92px;padding:7px 12px;text-align:right}
+.t tr.clic{cursor:pointer}
+.t .der{text-align:right}
+.delta{font-size:11.5px;font-weight:600;margin-top:6px;color:var(--muted)}
+.delta.sube{color:var(--viz-osc)} .delta.baja{color:#a8452b}
+.kpis.seis{grid-template-columns:repeat(6,1fr)}
+
+/* ---- gráficas (una serie = un color; texto siempre en tinta) ---- */
+.viz-vacio{font-size:13px;color:var(--muted);padding:18px 0}
+.bars,.meters{display:grid;gap:9px}
+.bar-fila,.meter-fila{display:grid;grid-template-columns:minmax(90px,150px) 1fr auto;gap:12px;align-items:center;font-size:12.5px;border-radius:6px;outline-offset:3px}
+.bar-rot{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.bar-pista{height:14px;position:relative}
+.bar-pista i{display:block;height:100%;min-width:2px;background:var(--viz);border-radius:0 4px 4px 0;transition:filter .2s}
+.bar-fila:hover .bar-pista i,.bar-fila:focus-visible .bar-pista i{filter:brightness(1.18)}
+.bar-fila b,.meter-fila b{font-family:var(--body);font-weight:600;font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
+.meter-fila b small{font-weight:500;color:var(--muted)}
+.meter-pista{height:10px;border-radius:5px;background:var(--viz-pista);overflow:hidden}
+.meter-pista.sin{background:none;box-shadow:inset 0 0 0 1px var(--viz-gris)}
+.meter-pista i{display:block;height:100%;background:var(--viz);border-radius:5px}
+.seg{display:flex;gap:2px;height:28px}
+.seg i{font-style:normal;display:flex;align-items:center;padding-left:8px;font-size:11.5px;font-weight:600;border-radius:4px;min-width:3px;white-space:nowrap;overflow:visible;outline-offset:2px}
+.leyenda-viz{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:12px;color:var(--ink)}
+.leyenda-viz span{display:inline-flex;align-items:center;gap:7px}
+.leyenda-viz i{width:10px;height:10px;border-radius:3px;display:inline-block}
+svg.linea{width:100%;height:auto;display:block;overflow:visible}
+svg.linea text{font-family:var(--body);font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
+svg.linea .valor{fill:var(--ink);font-weight:600;font-size:12px}
+svg.linea .malla{stroke:rgba(10,22,40,.09);stroke-width:1}
+svg.linea .cruz{stroke:rgba(10,22,40,.35);stroke-width:1;visibility:hidden}
+.tip{position:fixed;z-index:200;pointer-events:none;background:var(--ink);color:var(--surface);padding:8px 11px;border-radius:9px;font-size:12px;line-height:1.35;opacity:0;transition:opacity .15s;max-width:260px;box-shadow:0 10px 24px -10px rgba(10,22,40,.6)}
+.tip.on{opacity:1}
+.tip b{display:block;font-size:13.5px;font-weight:700;color:var(--white)}
+.tip span{color:var(--accent-soft)}
+details.tabla summary{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 0 8px}
+details.tabla{border:0;margin-top:8px}
+
+/* ---- ficha del inmueble (Markdown) ---- */
+.ficha-cab{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.ruta{font-family:var(--mono);font-size:11.5px;color:var(--muted);overflow-wrap:anywhere;margin-top:10px}
+.md{font-size:13.5px;line-height:1.6;color:var(--ink)}
+.md h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.1;margin:0 0 6px}
+.md h3{font-family:var(--display);font-weight:800;font-size:23px;text-transform:uppercase;letter-spacing:-.01em;margin:30px 0 10px;padding-top:18px;border-top:1px solid rgba(10,22,40,.1)}
+.md h4{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.md p{margin:8px 0}
+.md ul{margin:8px 0 8px 2px;list-style:none;display:grid;gap:5px}
+.md ul li{padding-left:16px;position:relative}
+.md ul li::before{content:"";position:absolute;left:0;top:.72em;width:7px;height:1px;background:var(--viz)}
+.md blockquote{background:var(--cream-soft);border-left:3px solid var(--cream);padding:9px 14px;border-radius:0 10px 10px 0;font-size:12.5px;margin:8px 0}
+.md code{font-family:var(--mono);font-size:12px;background:var(--surface-alt);padding:2px 6px;border-radius:5px;overflow-wrap:anywhere}
+.md .tabla-md{overflow:auto;margin:10px 0}
+.md table{border-collapse:collapse;font-size:12.5px;min-width:60%}
+.md th{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1px solid rgba(10,22,40,.14);white-space:nowrap}
+.md td{padding:7px 12px;border-bottom:1px solid rgba(10,22,40,.06);font-variant-numeric:tabular-nums;vertical-align:top}
+.md .r{text-align:right}
+@media (max-width:1100px){.kpis.seis{grid-template-columns:repeat(3,1fr)} .form-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:1100px){
+  :root{--rail:320px}
+  .kpis{grid-template-columns:repeat(3,1fr)} .kpi:nth-child(3n+1){padding-left:0;border-left:0} .equip{grid-template-columns:repeat(3,1fr)}
+  .g-7-5,.g2,.tres{grid-template-columns:1fr} .stage-inner{padding:0 24px 90px}
+}
+@media (max-width:760px){
+  body{overflow:auto} .app{position:static;display:block;margin-top:36px} .rail{overflow:visible} .mapa-caja{position:relative}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="acceso" id="acceso" role="dialog" aria-modal="true" aria-labelledby="accesoTitulo">
+  <form class="acceso-caja" id="formAcceso" autocomplete="on" novalidate>
+    <div class="brand-mark"><span>V1</span></div>
+    <h1 id="accesoTitulo">Venture One <em>Captura, almacén y ficha del inmueble</em></h1>
+    <label>Usuario <input id="accUsuario" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="comercial1"></label>
+    <label>Clave <input id="accClave" name="password" type="password" autocomplete="current-password"></label>
+    <p class="acceso-error" id="accError" role="alert"></p>
+    <button class="btn btn-cream btn-grande" type="submit"><span>Entrar</span></button>
+    <p class="acceso-pie">Uso exclusivo del equipo comercial y de supervisión.<br>Cada cotización y cada ficha quedan registradas con tu usuario.</p>
+  </form>
+</div>
+<div class="ticker"><div class="ticker-track" id="ticker"></div></div>
+
+<div class="app">
+  <aside class="rail">
+    <div class="rail-scroll">
+      <div class="brand">
+        <div class="brand-mark"><span>V1</span></div>
+        <div class="brand-txt"><b>Venture One</b><small>Captura · Almacén · Ficha</small></div>
+      </div>
+      <div class="sesion" id="sesion" hidden>
+        <div><b id="sesionNombre"></b><small id="sesionRol">Sesión activa</small></div>
+        <button class="btn btn-ghost" id="btnSalir" type="button"><span>Salir</span></button>
+      </div>
+      <div class="gestion solo-comercial" id="gestion" hidden></div>
+      <div class="bloque solo-admin">
+        <span class="rot" style="margin-top:4px">Administración</span>
+        <nav class="nav" id="navAdm" aria-label="Vistas de administración"></nav>
+        <p class="nota">Gestionas usuarios, inmobiliarias y respaldos. Este usuario no ve cotizaciones ni clientes. Cada cambio queda en la bitácora.</p>
+      </div>
+      <div class="bloque solo-supervisor">
+        <span class="rot" style="margin-top:4px">Supervisión</span>
+        <nav class="nav" id="navSup" aria-label="Vistas de supervisión"></nav>
+        <p class="nota">Ves el consolidado de los comerciales a tu cargo. Las cifras salen del almacén en esquema estrella.</p>
+      </div>
+
+      <p class="guia-campos solo-comercial">Cada dato dice si es <span class="req">obligatorio</span> u <span class="opc">opcional</span></p>
+      <div class="bloque solo-comercial activo" id="bloqueCliente" data-paso="0">
+        <div class="paso" data-ir="0" role="button" tabindex="0"><b>00</b><span>Registra al cliente</span><em id="res0"></em></div>
+        <div class="cuerpo"><div class="cuerpo-in">
+        <div id="clienteForm">
+          <label class="rot" for="cliDoc">Documento del cliente <span class="req">obligatorio</span></label>
+          <div class="fila2" style="grid-template-columns:104px 1fr"><select class="oscuro" id="cliTipo" aria-label="Tipo de documento"></select>
+            <input class="oscuro" id="cliDoc" inputmode="numeric" autocomplete="off" placeholder="Solo números" maxlength="16"></div>
+          <label class="rot" for="cliNombre">Nombre o razón social <span class="req">obligatorio</span></label>
+          <div class="campo simple"><input id="cliNombre" autocomplete="off" placeholder="Nombre y apellidos" maxlength="120"></div>
+          <label class="rot" for="cliCel">Número de celular <span class="req">obligatorio</span></label>
+          <div class="campo simple"><input id="cliCel" inputmode="tel" autocomplete="off" placeholder="10 dígitos" maxlength="16"></div>
+          <label class="check" id="cliAutorizaCaja"><input type="checkbox" id="cliAutoriza"><span><span id="cliAutorizaTexto"></span> <span class="req">obligatorio</span></span></label>
+          <p class="nota" id="cliNota">Antes de consultar una dirección, registra para quién es.</p>
+          <button class="btn btn-cream btn-grande" id="btnCliente" type="button"><span>Continuar</span></button>
+        </div>
+        <div class="ficha-cliente" id="clienteFicha" hidden></div>
+        <div id="buscaCaja" hidden>
+          <span class="rot">¿Qué busca el cliente? <span class="req">obligatorio</span></span>
+          <div class="chips" id="chipsBusca"></div>
+          <p class="nota" id="notaBusca">Elige uno o varios tipos de inmueble. Con ellos se buscan los anuncios y se arma la ficha.</p>
+          <button class="btn btn-cream btn-grande" id="btnBusca" type="button" disabled><span>Continuar</span></button>
+        </div>
+        </div></div>
+      </div>
+
+      <div class="bloque bloqueado plegado solo-comercial" id="bloqueUbica" data-paso="1">
+        <div class="paso" data-ir="1" role="button" tabindex="0"><b>01</b><span>Ubica el predio</span><em id="res1"></em></div>
+        <div class="cuerpo"><div class="cuerpo-in">
+        <p class="nota" id="notaDir" style="margin-top:0">Tres formas de empezar: <b>marca el punto en el mapa</b>, escribe la dirección o busca un barrio. <span class="req">una es obligatoria</span></p>
+        <label class="rot" for="dir">Dirección <span class="opc">opcional</span></label>
+        <div class="campo" id="campoDir">
+          <div id="ac-host"></div>
+          <input id="dir" placeholder="Ej.: Carrera 73 # 2-18" autocomplete="off" aria-label="Dirección del predio">
+          <button class="btn btn-cream" id="btnUbicar" type="button"><span>Ubicar</span></button>
+        </div>
+        <label class="rot" for="barrioQ">Barrio o comuna <span class="opc">opcional</span></label>
+        <div class="campo"><input id="barrioQ" placeholder="Ej.: Laureles" autocomplete="off" maxlength="60" aria-label="Barrio o comuna">
+          <button class="btn btn-cream" id="btnBarrio" type="button"><span>Buscar</span></button></div>
+        <div class="lista-barrios" id="listaBarrios"></div>
+        <div class="punto" id="punto"></div>
+        <label class="rot" for="conjunto">Conjunto o edificio <span class="opc">opcional</span></label>
+        <div class="campo simple"><input id="conjunto" placeholder="Se detecta al ubicar el punto; puedes corregirlo o borrarlo" autocomplete="off"></div>
+        <p class="nota">La dirección y el conjunto se detectan solos al marcar el punto. Puedes corregirlos o borrarlos.</p>
+        <button class="btn btn-cream btn-grande" id="btnPaso1" type="button" disabled><span>Continuar</span></button>
+        </div></div>
+      </div>
+
+      <div class="bloque bloqueado plegado solo-comercial" id="bloqueInmueble" data-paso="2">
+        <div class="paso" data-ir="2" role="button" tabindex="0"><b>02</b><span>Datos del inmueble</span><em id="res2"></em></div>
+        <div class="cuerpo"><div class="cuerpo-in">
+        <label class="rot" for="inmTipo" style="margin-top:0">Tipo de inmueble <span class="req">obligatorio</span></label>
+        <select class="oscuro" id="inmTipo" aria-label="Tipo de inmueble" style="width:100%"></select>
+        <label class="rot chica" for="inmArea">Área (m²) <span class="req">obligatorio</span></label>
+        <input class="oscuro" id="inmArea" inputmode="decimal" autocomplete="off" placeholder="Ej.: 72" style="width:100%">
+        <div id="inmCampos"></div>
+        <div id="inmExtras"></div>
+        <button class="enlace" id="inmMas" type="button" data-act="mas-extra" data-de="inm">+ Agregar otra característica <span class="opc">opcional</span></button>
+        <p class="nota" id="notaInmueble"></p>
+        <button class="btn btn-cream btn-grande" id="btnPaso2" type="button" disabled><span>Continuar</span></button>
+        </div></div>
+      </div>
+
+      <div class="bloque bloqueado plegado solo-comercial" id="bloqueFuentes" data-paso="3">
+        <div class="paso" data-ir="3" role="button" tabindex="0"><b>03</b><span>Inmobiliarias</span><em id="res3"></em></div>
+        <div class="cuerpo"><div class="cuerpo-in">
+        <span class="rot" style="margin-top:0">Dónde se buscan los anuncios vigentes <span class="opc">opcional</span></span>
+        <p class="nota" id="resumenPortales" style="margin-top:0"></p>
+        <div class="acciones-portales">
+          <button class="enlace" id="btnPortalesTodos" type="button" data-act="portales-todos">Apagar todas</button>
+          <button class="enlace" type="button" data-act="portales-defecto">Las recomendadas</button>
+          <button class="enlace" id="btnPortalesVer" type="button" data-act="portales-ver" aria-expanded="false">Ver la lista</button>
+        </div>
+        <div id="cajaPortales" hidden>
+          <div class="campo simple"><input id="filtroPortales" placeholder="Filtrar por nombre" autocomplete="off" maxlength="40" aria-label="Filtrar inmobiliarias por nombre"></div>
+          <div class="chips lista-portales" id="chipsPortales"></div>
+        </div>
+        <p class="nota" id="notaPortales"></p>
+        <button class="btn btn-cream btn-grande" id="btnCapturar" disabled><span>Buscar · 1 km</span></button>
+        </div></div>
+      </div>
+
+      <div class="bloque solo-comercial" id="bloqueAvance" hidden>
+        <div class="paso"><b>04</b><span>Entorno, mercado y ficha</span></div>
+        <div class="pasos" id="pasos"></div>
+      </div>
+
+      <div class="bloque solo-comercial">
+        <span class="rot" id="rotCapturas">Mis cotizaciones</span>
+        <div id="capturas"></div>
+      </div>
+    </div>
+    <div class="rail-foot" id="pie"></div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="mapa-caja">
+      <div id="mapa"></div>
+      <div class="leyenda" id="leyenda"></div>
+      <div class="mapa-aviso" id="mapaAviso">Cargando mapa…</div>
+      <button class="mapa-btn" id="mapaBtn" aria-expanded="true">Reducir mapa</button>
+    </div>
+    <div class="stage-inner" id="vista"></div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = (n, d = 0) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString("es-CO", {maximumFractionDigits: d});
+const metros = (n) => n == null ? "—" : `${num(Math.round(n))} m`;
+const FUENTE = {geomedellin:"GeoMedellín", catastro:"Catastro", registro_ic:"Industria y Comercio", oime:"OIME", osm:"OpenStreetMap", google:"Google"};
+const CHIP = {geomedellin:"Capas oficiales", catastro:"Catastro", registro_ic:"Establecimientos", oime:"Ofertas OIME 2023", osm:"OpenStreetMap", google:"Google Places"};
+const ORIGEN = {catastro:"Nomenclatura oficial", pin_usuario:"Punto marcado a mano", google_autocomplete:"Google", google_geocoding:"Google", nominatim:"OpenStreetMap (aprox.)", usuario:"Escrito por ti", osm:"OpenStreetMap", google:"Google"};
+const PREC = {P1:"P1 · placa exacta", P2:"P2 · punto", P3:"P3 · aproximada"};
+
+let CFG = null, mapa = null, punto = null, conjuntoEditado = false, actual = null, trabajo = null;
+let sesionActual = null, arrancado = false, cliente = null, existente = null, cotizaciones = [], ultimaCot = null, cotActual = null;
+const fuentesOn = new Set(), ocultas = new Set();
+let claudeOn = true;
+
+function toast(texto, mal = false) {
+  const t = $("#toast"); t.textContent = texto; t.className = "toast on" + (mal ? " mal" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "toast", mal ? 6000 : 3200);
+}
+async function api(ruta, cuerpo) {
+  const r = await fetch(ruta, cuerpo === undefined ? {credentials: "same-origin"} : {method: "POST", credentials: "same-origin", headers: {"Content-Type": "application/json"}, body: JSON.stringify(cuerpo)});
+  const datos = await r.json().catch(() => ({}));
+  if (r.status === 401 && ruta !== "/api/login") mostrarAcceso("Tu sesión terminó. Vuelve a entrar.");
+  if (!r.ok) throw new Error(datos.error || `Error ${r.status}`);
+  return datos;
+}
+const busca = new Set(), portalesOn = new Set();
+let pasoAbierto = 0, dirEditada = false;
+const BLOQUES = ["#bloqueCliente", "#bloqueUbica", "#bloqueInmueble", "#bloqueFuentes"];
+const completo = (i) => !CFG ? false : [!!cliente && busca.size >= CFG.busqueda.min_tipos, !!punto, !faltaInmueble(leerInmueble("inm")), true][i];
+function resumenPaso(i) {
+  const d = leerInmueble("inm");
+  return [cliente ? `${cliente.nombre} · busca ${[...busca].map(TIPO_INM).join(", ").toLowerCase()}` : "",
+          punto ? (punto.direccion_catastral || $("#dir").value.trim() || "Punto marcado en el mapa") + (punto.contexto?.barrio ? ` · ${punto.contexto.barrio}` : "") : "",
+          d.tipo ? `${TIPO_INM(d.tipo)} · ${d.area_m2} m²` : "", ""][i];
+}
+function pintarFormulario(ir) {
+  if (!CFG || esSup() || esAdmin()) return;
+  const libre = [true, completo(0), completo(0) && completo(1), completo(0) && completo(1) && completo(2)];
+  if (ir != null && libre[ir]) pasoAbierto = ir;
+  if (!libre[pasoAbierto]) pasoAbierto = libre.lastIndexOf(true);
+  BLOQUES.forEach((sel, i) => {
+    const b = $(sel), hecho = completo(i) && i !== pasoAbierto && i < 3;
+    b.classList.toggle("bloqueado", !libre[i]); b.classList.toggle("activo", i === pasoAbierto);
+    b.classList.toggle("plegado", i !== pasoAbierto); b.classList.toggle("hecho", hecho);
+    $("#res" + i).textContent = hecho ? resumenPaso(i) : "";
+  });
+  $("#btnBusca").disabled = !completo(0); $("#btnPaso1").disabled = !punto; $("#btnPaso2").disabled = !completo(2);
+  pintarFoco();
+}
+function pintarFoco() {
+  const d = leerInmueble("inm"), sitios = portalesOn.size ? [plural(portalesOn.size, "sitio", "sitios")] : [];
+  const valores = [cliente ? cliente.nombre + (busca.size ? ` · busca ${[...busca].map(TIPO_INM).join(", ").toLowerCase()}` : "") : "",
+                   punto ? resumenPaso(1) : "", d.tipo ? `${TIPO_INM(d.tipo)}${d.area_m2 ? ` · ${d.area_m2} m²` : ""}` : "",
+                   completo(0) && completo(1) && completo(2) ? (sitios.length ? sitios.join(", ") : "Sin inmobiliarias") + ` · ${num(CFG.radio_m / 1000, 1)} km` : ""];
+  valores.forEach((v, i) => {
+    const caja = $("#foco" + i); if (!caja) return;
+    const destino = caja.querySelector("strong"), antes = destino.dataset.v || "";
+    caja.classList.toggle("lleno", !!v); caja.classList.toggle("ahora", i === pasoAbierto);
+    if (v !== antes) { destino.dataset.v = v; destino.textContent = v || destino.dataset.vacio; if (v) { caja.classList.remove("pulso"); void caja.offsetWidth; caja.classList.add("pulso"); } }
+  });
+}
+const actualizarBoton = () => {
+  $("#btnCapturar").disabled = !(cliente && punto && completo(0) && (!CFG?.inmueble.exigir_al_cotizar || !faltaInmueble(leerInmueble("inm"))));
+  pintarFormulario();
+};
+function pintarBusca() {
+  $("#chipsBusca").innerHTML = CFG.inmueble.tipos.map((x) => `<button class="chip ${busca.has(x) ? "on" : ""}" data-busca="${esc(x)}" type="button" aria-pressed="${busca.has(x)}">${esc(TIPO_INM(x))}</button>`).join("");
+  $("#notaBusca").innerHTML = busca.size ? `Se buscarán anuncios de <b>${esc([...busca].map(TIPO_INM).join(", ").toLowerCase())}</b>.` : "Elige uno o varios tipos de inmueble. Con ellos se buscan los anuncios y se arma la ficha.";
+  opcionesInmueble("inm"); revisarInmueble();
+}
+const sinTildes = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const LECTURA = {ok: "se dejó leer en la prueba", sin_resultados: "se dejó leer; sin anuncios en la prueba", no_legible: "no se dejó leer en la prueba", bloqueado: "bloqueó la lectura en la prueba", error: "falló en la prueba", sin_probar: "sin probar"};
+function pintarPortales() {
+  const lista = CFG.inmobiliarias.lista || [], permitidas = lista.filter((x) => x.permitida !== false);
+  const filtro = sinTildes($("#filtroPortales").value.trim()), GRUPO = {portal: "Portales", inmobiliaria: "Inmobiliarias", agregador: "Agregadores"};
+  const chip = (x) => x.permitida === false
+    ? `<button class="chip no" type="button" disabled title="${esc(x.nota || "No se consulta")}">${esc(x.nombre)}</button>`
+    : `<button class="chip ${portalesOn.has(x.id) ? "on" : ""} ${["ok", "sin_resultados", "sin_probar", null, undefined].includes(x.lectura) ? "" : "duda"}" data-portal="${esc(x.id)}" type="button" aria-pressed="${portalesOn.has(x.id)}" title="${esc(x.dominio + " · " + (LECTURA[x.lectura] || "sin probar") + (x.nota ? " — " + x.nota : ""))}">${esc(x.nombre)}</button>`;
+  $("#chipsPortales").innerHTML = ["portal", "inmobiliaria", "agregador"].map((tipo) => {
+    const g = lista.filter((x) => x.tipo === tipo && (!filtro || sinTildes(x.nombre).includes(filtro)));
+    return g.length ? `<span class="rot">${GRUPO[tipo]} · ${num(g.filter((x) => portalesOn.has(x.id)).length)} de ${num(g.filter((x) => x.permitida !== false).length)}</span>${g.map(chip).join("")}` : "";
+  }).join("") || `<p class="nota">Ningún sitio con ese nombre.</p>`;
+  const todas = permitidas.length && permitidas.every((x) => portalesOn.has(x.id));
+  $("#btnPortalesTodos").textContent = todas ? "Apagar todas" : "Encender todas";
+  $("#resumenPortales").innerHTML = `<b>${num(portalesOn.size)}</b> de ${num(permitidas.length)} sitios encendidos`;
+  const no = lista.filter((x) => x.permitida === false);
+  $("#notaPortales").innerHTML = (!CFG.inmobiliarias.activo ? "La búsqueda en inmobiliarias está desactivada en la configuración."
+    : portalesOn.size ? `Claude Code lee cada sitio encendido y trae solo anuncios de lo que pidió el cliente. Con muchos sitios la búsqueda tarda varios minutos.`
+    : "Con todas apagadas no se buscan anuncios vigentes: la ficha quedará sin comparables.")
+    + (no.length ? ` No se consulta: ${esc(no.map((x) => x.nombre).join(", "))}.` : "")
+    + " Las fuentes oficiales (Catastro, Alcaldía, OpenStreetMap) se consultan siempre.";
+  pintarFoco();
+}
+
+/* ======================= INGRESO ======================= */
+function mostrarAcceso(msg = "") {
+  $("#acceso").classList.add("on"); $("#accError").textContent = msg;
+  setTimeout(() => ($("#accUsuario").value ? $("#accClave") : $("#accUsuario")).focus(), 60);
+}
+function entrar(s) {
+  if (sesionActual && sesionActual.usuario !== s.usuario) return void location.reload();   // otro comercial: estado limpio
+  sesionActual = s; $("#acceso").classList.remove("on"); $("#accClave").value = ""; $("#accError").textContent = "";
+  $("#sesion").hidden = false; $("#sesionNombre").textContent = s.nombre;
+  document.body.classList.toggle("sup", s.rol === "supervisor"); document.body.classList.toggle("adm", s.rol === "admin");
+  $("#sesionRol").textContent = ({supervisor: "Supervisor", admin: "Administrador"})[s.rol] || "Comercial";
+  if (!arrancado) { arrancado = true; arrancar(); } else if (s.rol !== "admin") listar();
+}
+async function inicio() {
+  let s;
+  try { s = await api("/api/sesion"); }
+  catch (e) { $("#vista").innerHTML = `<div class="vacio"><h1>Sin conexión <em>con la aplicación</em></h1><p>${esc(e.message)}</p></div>`; return; }
+  s.autenticado ? entrar(s) : mostrarAcceso();
+}
+
+/* ======================= CLIENTE ======================= */
+const soloDigitos = (v) => String(v || "").replace(/[\s.\-]/g, "");
+function reglaDocumento() {
+  const c = CFG.clientes, tipo = $("#cliTipo").value || c.tipo_por_defecto, r = (c.tipos_documento || {})[tipo] || {};
+  return {tipo, min: r.min_digitos ?? c.documento_min_digitos, max: r.max_digitos ?? c.documento_max_digitos};
+}
+function mensajeCliente(html, mal = false) { $("#cliNota").innerHTML = mal ? `<span class="mal">${esc(html)}</span>` : html; }
+function verAutorizacion(ver) { $("#cliAutorizaCaja").hidden = !(CFG.clientes.exigir_autorizacion && ver); }
+function fijarCliente(c) {
+  cliente = c;
+  $("#clienteForm").hidden = !!c; $("#clienteFicha").hidden = !c; $("#buscaCaja").hidden = !c;
+  if (!c) { busca.clear(); pasoAbierto = 0; }
+  if (CFG) pintarBusca();
+  if (c) {
+    const n = c.cotizaciones;
+    const hist = (c.historia || []).filter((x) => x.estado_cliente);
+    const historia = hist.length ? `<details class="historia-cli"><summary>Historia con este cliente · ${plural(hist.length, "ficha", "fichas")}</summary><ul>${hist.map((x) => `<li><b>${esc(x.estado_cliente.etiqueta)}</b>${x.estado_cliente.motivo_etiqueta ? ` · ${esc(x.estado_cliente.motivo_etiqueta)}` : ""}<br>${esc([x.tipo ? TIPO_INM(x.tipo) : "", x.barrio || x.direccion || "", fechaCorta(x.creada_en)].filter(Boolean).join(" · "))}</li>`).join("")}</ul></details>` : "";
+    if (!c.historia) historiaDelCliente();
+    $("#clienteFicha").innerHTML = `<div><strong>${esc(c.nombre)}</strong><small>${esc(DOC(c))}${c.celular_mascara ? ` · cel. ${esc(c.celular_mascara)}` : ""}${n != null ? ` · ${num(n)} ${n === 1 ? "cotización" : "cotizaciones"}` : ""}</small></div><button class="btn btn-ghost" data-act="cambiar-cliente" type="button"><span>Cambiar</span></button>${historia}`;
+  }
+  actualizarBoton();
+}
+async function buscarCliente() {
+  const doc = soloDigitos($("#cliDoc").value), c = reglaDocumento(), marca = (buscarCliente.n = (buscarCliente.n || 0) + 1);
+  existente = null; verAutorizacion(true);
+  if (!/^\d+$/.test(doc) || doc.length < c.min || doc.length > c.max) {
+    mensajeCliente("Antes de consultar una dirección, registra para quién es."); return;
+  }
+  try {
+    const r = await api(`/api/clientes/${doc}`);
+    if (marca !== buscarCliente.n) return;
+    if (r.encontrado) {
+      existente = r.cliente; $("#cliNombre").value = r.cliente.nombre; $("#cliTipo").value = r.cliente.tipo_documento || $("#cliTipo").value; verAutorizacion(!r.cliente.autoriza_datos);
+      $("#cliCel").value = ""; $("#cliCel").placeholder = r.cliente.tiene_celular ? `Registrado: ${r.cliente.celular_mascara} (escribe otro para cambiarlo)` : "10 dígitos";
+      mensajeCliente(`Cliente registrado · <b>${num(r.cliente.cotizaciones)} ${r.cliente.cotizaciones === 1 ? "cotización" : "cotizaciones"}</b>${r.cliente.autoriza_datos ? " · autorización vigente" : ""}`);
+    } else mensajeCliente("Cliente nuevo.");
+  } catch (_) { /* sin sesión o sin red: el registro lo dirá */ }
+}
+async function registrarCliente() {
+  const c = CFG.clientes, regla = reglaDocumento(), doc = soloDigitos($("#cliDoc").value), nombre = $("#cliNombre").value.trim().replace(/\s+/g, " ");
+  if (!/^\d+$/.test(doc)) return mensajeCliente("El documento lleva solo números", true);
+  if (doc.length < regla.min || doc.length > regla.max)
+    return mensajeCliente(`${regla.tipo === "NIT" ? "El NIT" : "El documento"} tiene entre ${regla.min} y ${regla.max} dígitos`, true);
+  if (nombre.length < c.nombre_min) return mensajeCliente("Escribe el nombre completo del cliente", true);
+  const cel = soloDigitos($("#cliCel").value).replace(/^\+/, ""), yaTiene = existente && existente.documento === doc && existente.tiene_celular;
+  if (c.celular.obligatorio && !cel && !yaTiene) return mensajeCliente("Falta el número de celular del cliente", true);
+  if (cel && !/^\+?\d+$/.test(cel)) return mensajeCliente("El celular lleva solo números", true);
+  const yaAutorizado = existente && existente.documento === doc && existente.autoriza_datos;
+  if (c.exigir_autorizacion && !yaAutorizado && !$("#cliAutoriza").checked) return mensajeCliente("Falta marcar la autorización del cliente", true);
+  $("#btnCliente").disabled = true;
+  try {
+    const r = await api("/api/clientes", {documento: doc, nombre, autoriza: $("#cliAutoriza").checked, tipo_documento: regla.tipo, celular: cel});
+    $("#cliAutoriza").checked = false; $("#cliCel").value = ""; existente = r.cliente; fijarCliente(r.cliente);
+    toast(`Cliente listo: ${r.cliente.nombre}. Indica qué busca.`);
+  } catch (e) { mensajeCliente(e.message, true); }
+  finally { $("#btnCliente").disabled = false; }
+}
+async function refrescarCliente() {
+  if (!cliente) return;
+  if (!cliente.documento) return void historiaDelCliente(true);
+  try { const r = await api(`/api/clientes/${cliente.documento}`); if (r.encontrado && cliente) fijarCliente(r.cliente); } catch (_) {}
+}
+async function historiaDelCliente(forzar = false) {
+  const c = cliente; if (!c?.cliente_id || (c.historia && !forzar)) return;
+  try { const r = await api(`/api/clientes/id/${c.cliente_id}/historia`); if (cliente === c) { c.historia = r.historia; fijarCliente(c); } } catch (_) {}
+}
+
+/* ======================= MAPA (Google si hay llave; si no, Leaflet + OpenStreetMap) ======================= */
+function cargar(src, css) {
+  return new Promise((ok, mal) => {
+    if (css) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = css; document.head.appendChild(l); }
+    const s = document.createElement("script"); s.src = src; s.async = true; s.onload = ok; s.onerror = () => mal(new Error("no se pudo cargar " + src));
+    document.head.appendChild(s);
+  });
+}
+async function mapaLeaflet() {
+  await cargar("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js", "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
+  const m = L.map("mapa", {zoomControl: true, preferCanvas: true}).setView([CFG.mapa.centro.lat, CFG.mapa.centro.lng], CFG.mapa.zoom);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19, attribution: "© colaboradores de OpenStreetMap"}).addTo(m);
+  let pin = null, circulo = null; const capas = {};
+  const api = {
+    tipo: "leaflet",
+    alClic(fn) { m.on("click", (e) => fn(e.latlng.lat, e.latlng.lng)); },
+    fijar(lat, lng, alArrastrar) {
+      if (!pin) {
+        const icono = L.divIcon({className: "", html: '<div class="pin-v1"></div>', iconSize: [26, 26], iconAnchor: [13, 31]});
+        pin = L.marker([lat, lng], {draggable: true, icon: icono, zIndexOffset: 1000, title: "Predio (arrastra para ajustar)"}).addTo(m);
+        pin.on("dragend", () => { const q = pin.getLatLng(); alArrastrar(q.lat, q.lng); });
+        circulo = L.circle([lat, lng], {radius: CFG.radio_m, color: "#0a1628", weight: 1.5, fillColor: "#7fa598", fillOpacity: .1, interactive: false}).addTo(m);
+      } else { pin.setLatLng([lat, lng]); circulo.setLatLng([lat, lng]); }
+      m.fitBounds(circulo.getBounds(), {padding: [20, 20]});
+    },
+    mover(lat, lng) { if (circulo) circulo.setLatLng([lat, lng]); },
+    pintar(items, cats) {
+      Object.values(capas).forEach((g) => g.remove()); for (const k in capas) delete capas[k];
+      for (const it of items) {
+        const c = cats[it.categoria]; if (!c || it.lat == null) continue;
+        const g = (capas[it.categoria] ??= L.layerGroup());
+        L.circleMarker([it.lat, it.lng], {radius: it.n_fuentes > 1 ? 7 : 5.5, color: "#fff", weight: 1.5, fillColor: c.color, fillOpacity: .95})
+          .bindPopup(globo(it, c)).addTo(g);
+      }
+      for (const [cat, g] of Object.entries(capas)) if (!ocultas.has(cat)) g.addTo(m);
+    },
+    ver(cat, on) { const g = capas[cat]; if (g) on ? g.addTo(m) : g.remove(); },
+    ajustar() { m.invalidateSize(); if (circulo) m.fitBounds(circulo.getBounds(), {padding: [20, 20]}); },
+  };
+  return api;
+}
+async function mapaGoogle() {
+  await new Promise((ok, mal) => {
+    window.__v1mapa = ok;
+    const s = document.createElement("script");
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(CFG.google.llave_navegador)}&v=weekly&loading=async&callback=__v1mapa`;
+    s.async = true; s.onerror = () => mal(new Error("no se pudo cargar Google Maps")); document.head.appendChild(s);
+    window.gm_authFailure = () => mal(new Error("Google rechazó la llave del navegador"));
+  });
+  const {Map, Circle, InfoWindow} = await google.maps.importLibrary("maps");
+  const {AdvancedMarkerElement, PinElement} = await google.maps.importLibrary("marker");
+  const {PlaceAutocompleteElement} = await google.maps.importLibrary("places");
+  const m = new Map($("#mapa"), {center: CFG.mapa.centro, zoom: CFG.mapa.zoom, mapId: CFG.google.map_id, streetViewControl: false, mapTypeControl: false});
+  const info = new InfoWindow();
+  const circulo = new Circle({map: m, radius: CFG.radio_m, center: CFG.mapa.centro, visible: false, clickable: false, strokeColor: "#0a1628", strokeWeight: 1.5, fillColor: "#7fa598", fillOpacity: .1});
+  let pin = null, marcas = [];
+  const ll = (q) => typeof q.lat === "function" ? {lat: q.lat(), lng: q.lng()} : {lat: q.lat, lng: q.lng};
+  // Autocompletado (New), solo Colombia. Se piden solo id, dirección y ubicación para no subir de SKU.
+  try {
+    const ac = new PlaceAutocompleteElement({includedRegionCodes: ["co"], locationBias: {center: CFG.mapa.centro, radius: 30000}});
+    $("#ac-host").appendChild(ac); $("#dir").hidden = true; $("#btnUbicar").hidden = true; $("#campoDir").classList.add("simple");
+    ac.addEventListener("gmp-select", async ({placePrediction}) => {
+      const lugar = placePrediction.toPlace();
+      await lugar.fetchFields({fields: ["id", "formattedAddress", "location"]});
+      const q = ll(lugar.location);
+      $("#dir").value = lugar.formattedAddress || "";
+      fijarPunto({lat: q.lat, lng: q.lng, origen: "google_autocomplete", precision: "P3", direccion: lugar.formattedAddress, place_id: lugar.id});
+    });
+  } catch (e) { console.warn("Autocompletado no disponible:", e); }
+  return {
+    tipo: "google",
+    alClic(fn) { m.addListener("click", (e) => fn(e.latLng.lat(), e.latLng.lng())); },
+    fijar(lat, lng, alArrastrar) {
+      const pos = {lat, lng};
+      if (!pin) {
+        const p = new PinElement({background: "#0a1628", borderColor: "#f3e29a", glyphColor: "#f3e29a", scale: 1.25});
+        pin = new AdvancedMarkerElement({map: m, position: pos, content: p.element, gmpDraggable: true, zIndex: 1000, title: "Predio (arrastra para ajustar)"});
+        pin.addListener("dragend", () => { const q = ll(pin.position); alArrastrar(q.lat, q.lng); });
+      } else pin.position = pos;
+      circulo.setCenter(pos); circulo.setVisible(true); m.fitBounds(circulo.getBounds());
+    },
+    mover(lat, lng) { circulo.setCenter({lat, lng}); },
+    pintar(items, cats) {
+      marcas.forEach((x) => x.marca.map = null); marcas = [];
+      for (const it of items) {
+        const c = cats[it.categoria]; if (!c || it.lat == null) continue;
+        const p = new PinElement({background: c.color, borderColor: "#ffffff", glyphColor: "#ffffff", glyph: c.letra, scale: .75});
+        const marca = new AdvancedMarkerElement({map: ocultas.has(it.categoria) ? null : m, position: {lat: it.lat, lng: it.lng}, content: p.element, title: it.nombre || c.etiqueta});
+        marca.addListener("click", () => { info.setContent(globo(it, c)); info.open({map: m, anchor: marca}); });
+        marcas.push({marca, cat: it.categoria});
+      }
+    },
+    ver(cat, on) { marcas.filter((x) => x.cat === cat).forEach((x) => x.marca.map = on ? m : null); },
+    ajustar() { google.maps.event.trigger(m, "resize"); if (circulo.getVisible()) m.fitBounds(circulo.getBounds()); },
+  };
+}
+function globo(it, c) {
+  return `<div style="font:13px Inter,system-ui;max-width:240px;line-height:1.45"><b>${esc(it.nombre || "Sin nombre")}</b><br>` +
+    `<span style="color:#6b7a8a">${esc(c.etiqueta)} · ${esc((it.subtipo || "").replace(/_/g, " "))}</span><br>` +
+    `${metros(it.distancia_m)} · ${esc(FUENTE[it.fuente] || it.fuente)}${it.n_fuentes > 1 ? ` · ${it.n_fuentes} fuentes` : ""}</div>`;
+}
+async function iniciarMapa() {
+  try {
+    mapa = CFG.google.mapa ? await mapaGoogle() : await mapaLeaflet();
+  } catch (e) {
+    if (CFG.google.mapa) { try { mapa = await mapaLeaflet(); toast("Google Maps no cargó; se usa OpenStreetMap", true); } catch (_) {} }
+    if (!mapa) { $("#mapaAviso").textContent = "El mapa no cargó (sin conexión). Aún puedes capturar escribiendo la dirección."; return; }
+  }
+  mapa.alClic((lat, lng) => fijarPunto({lat, lng, origen: "pin_usuario", precision: "P2", nuevo: true}));
+  $("#mapaAviso").textContent = mapa.tipo === "google" ? "Google Maps · clic para marcar el predio" : "OpenStreetMap · clic para marcar el predio";
+  if (punto) mapa.fijar(punto.lat, punto.lng, alArrastrar);
+}
+function alArrastrar(lat, lng) {
+  fijarPunto({lat, lng, origen: "pin_usuario", precision: "P2", direccion: punto?.direccion}, false);
+}
+
+/* ======================= UBICACIÓN ======================= */
+async function ubicar() {
+  const texto = $("#dir").value.trim();
+  if (texto.length < 3) return toast("Escribe una dirección", true);
+  $("#btnUbicar").disabled = true;
+  try {
+    const r = await api("/api/geocodificar", {direccion: texto});
+    if (!r.ok) return toast("No encontré esa dirección en la nomenclatura. Marca el punto en el mapa.", true);
+    dirEditada = true;
+    fijarPunto({lat: r.lat, lng: r.lng, origen: r.origen, precision: r.precision, direccion: texto,
+                direccion_catastral: r.direccion_catastral, metodo: r.metodo, cbml: r.cbml});
+    (r.avisos || []).forEach((a) => toast(a, true));
+  } catch (e) { toast(e.message, true); } finally { $("#btnUbicar").disabled = false; }
+}
+function fijarPunto(p, centrar = true) {
+  if (p.nuevo) { dirEditada = false; conjuntoEditado = false; $("#dir").value = ""; $("#conjunto").value = ""; }
+  punto = p;
+  if (mapa) centrar ? mapa.fijar(p.lat, p.lng, alArrastrar) : mapa.mover(p.lat, p.lng);
+  actualizarBoton();
+  pintarPunto();
+  const marca = `${p.lat},${p.lng}`; fijarPunto.ultima = marca;
+  api(`/api/punto?lat=${p.lat}&lng=${p.lng}`).then((c) => {
+    if (fijarPunto.ultima !== marca) return;
+    punto.contexto = c;
+    if (c.direccion_catastral && !punto.direccion_catastral) punto.direccion_catastral = c.direccion_catastral;
+    if (!conjuntoEditado) $("#conjunto").value = c.conjunto?.nombre || "";
+    if (!dirEditada && c.direccion_catastral) $("#dir").value = c.direccion_catastral;
+    pintarPunto(); pintarFormulario();
+  }).catch(() => {});
+}
+function pintarPunto() {
+  const p = punto, c = p.contexto;
+  const titulo = p.direccion_catastral || p.direccion || "Punto marcado en el mapa";
+  let extra = "";
+  if (c) {
+    extra = c.en_cobertura === false ? "Fuera de Medellín: sin catastro ni capas oficiales"
+      : [c.barrio, c.comuna].filter(Boolean).join(" · ") + (c.cbml ? ` · CBML ${c.cbml}` : "") + (c.es_ph ? " · propiedad horizontal" : "");
+  }
+  $("#punto").className = "punto on";
+  $("#punto").innerHTML = `<strong>${esc(titulo)}</strong>${esc(PREC[p.precision] || p.precision || "")} · ${esc(ORIGEN[p.origen] || p.origen)}` +
+    `${p.metodo ? ` (${esc(p.metodo)})` : ""}<br><code>${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</code>${extra ? `<br>${esc(extra)}` : ""}`;
+}
+
+async function buscarBarrio() {
+  const q = $("#barrioQ").value.trim(), minimo = CFG.busqueda.barrio_min_letras;
+  if (q.length < minimo) return toast(`Escribe al menos ${minimo} letras del barrio o la comuna`, true);
+  $("#btnBarrio").disabled = true;
+  try {
+    const r = await api(`/api/barrios?q=${encodeURIComponent(q)}`);
+    buscarBarrio.lista = r.barrios;
+    $("#listaBarrios").innerHTML = r.barrios.map((b, i) => `<button type="button" data-barrio="${i}"><b>${esc(b.barrio)}</b><small>${esc(b.comuna || "sin comuna")}</small></button>`).join("")
+      || `<p class="nota">Ningún barrio ni comuna con ese nombre. Prueba con otra palabra o marca el punto en el mapa.</p>`;
+  } catch (e) { toast(e.message, true); } finally { $("#btnBarrio").disabled = false; }
+}
+function elegirBarrio(i) {
+  const b = (buscarBarrio.lista || [])[i]; if (!b) return;
+  $("#listaBarrios").innerHTML = "";
+  fijarPunto({lat: b.lat, lng: b.lng, origen: "pin_usuario", precision: "P3", nuevo: true});
+  toast(`Centro de ${b.barrio}. Arrastra el pin si quieres otro punto del barrio.`);
+}
+
+/* ======================= CAPTURA ======================= */
+async function capturar(reusar = true) {
+  if (!cliente) { toast("Registra primero al cliente", true); $("#cliDoc").focus(); return; }
+  if (!punto) return;
+  const cuerpo = {
+    direccion: $("#dir").value.trim() || punto.direccion || "", lat: punto.lat, lng: punto.lng,
+    origen_coordenada: punto.origen, precision: punto.precision, place_id: punto.place_id || null,
+    direccion_normalizada: punto.origen.startsWith("google") ? (punto.direccion || null) : null,
+    direccion_catastral: punto.direccion_catastral || null,
+    conjunto_nombre: conjuntoEditado ? $("#conjunto").value.trim() : "",
+    curar_con_claude: claudeOn, reusar, cliente_id: cliente.cliente_id,
+    inmueble: leerInmueble("inm"), busca: [...busca], portales: [...portalesOn],
+  };
+  if (dirEditada && !cuerpo.direccion) cuerpo.direccion_catastral = null;      // el comercial borró la dirección detectada
+  const falta = CFG.inmueble.exigir_al_cotizar ? faltaInmueble(cuerpo.inmueble) : "";
+  if (falta) { toast(falta, true); return; }
+  $("#btnCapturar").disabled = true; $("#bloqueAvance").hidden = false;
+  $("#pasos").innerHTML = "";
+  try {
+    const r = await api("/api/capturas", cuerpo);
+    trabajo = r.trabajo_id; ultimaCot = r.cotizacion_id; seguir(trabajo);
+  } catch (e) { toast(e.message, true); actualizarBoton(); }
+}
+async function seguir(id) {
+  let prog;
+  try { prog = await api(`/api/trabajos/${id}`); } catch (e) { toast(e.message, true); actualizarBoton(); return; }
+  if (trabajo !== id) return;
+  pintarPasos(prog);
+  if (!prog.terminado) return void setTimeout(() => seguir(id), 700);
+  actualizarBoton();
+  const lista = await listar(); refrescarCliente(); miGestion();
+  if (prog.error) { toast(prog.error, true); if (!prog.captura_id) return; }
+  if (prog.captura_id) await abrir(prog.captura_id, prog.reusada, lista.find((c) => c.cotizacion_id === ultimaCot));
+}
+function pintarPasos(prog) {
+  const capas = prog.capas || [], primera = !$("#pasos").children.length, grupos = prog.grupos || [];
+  let previo = null;      // dos bloques: el entorno es del predio (se reusa) y el mercado es de la cotización (del día)
+  $("#pasos").innerHTML = prog.pasos.map((p, i) => {
+    const g = p.grupo !== previo ? grupos.find((x) => x.id === p.grupo) : null;
+    previo = p.grupo;
+    return (g ? `<div class="pp-grupo"><b>${esc(g.etiqueta)}</b><span>${esc(g.nota)}</span></div>` : "") +
+      `<div class="pp ${esc(p.estado)}"><i></i><div><span class="pp-n">${i + 1}</span>${esc(p.etiqueta)}<small>${esc(p.detalle || (p.estado === "pendiente" ? "" : p.estado.replace("_", " ")))}</small></div></div>` +
+      (p.id === "fuentes" && capas.length ? `<div class="capas">${capas.map((c) => `${esc(c.capa)} <b>${c.estado === "ok" ? num(c.registros) : esc(c.estado)}</b>`).join("<br>")}</div>` : "");
+  }).join("");
+  if (primera) $("#bloqueAvance").scrollIntoView({behavior: "smooth", block: "start"});
+}
+
+/* ======================= RESULTADO ======================= */
+async function abrir(id, reusada = false, cot = null) {
+  let r;
+  try { r = await api(`/api/capturas/${id}`); } catch (e) { return toast(e.message, true); }
+  actual = r; cotActual = cot; ocultas.clear();
+  if (cot && cliente?.cliente_id !== cot.cliente_id)        // volver a capturar queda a nombre del mismo cliente
+    fijarCliente({cliente_id: cot.cliente_id, nombre: cot.cliente_nombre, documento_mascara: cot.cliente_documento_mascara, tipo_documento: cot.cliente_tipo_documento, cotizaciones: null});
+  r.categorias.filter((c) => c.oculta_al_abrir && c.lugares).forEach((c) => ocultas.add(c.id));
+  if (r.punto.lat != null) {
+    punto = {lat: r.punto.lat, lng: r.punto.lng, origen: r.punto.origen, precision: r.punto.precision,
+             direccion: r.punto.direccion_ingresada, direccion_catastral: r.punto.direccion_catastral};
+    if (mapa) mapa.fijar(punto.lat, punto.lng, alArrastrar);
+    pintarPunto(); actualizarBoton();
+  }
+  conjuntoEditado = false; $("#conjunto").value = r.conjunto.nombre || "";
+  const cats = Object.fromEntries(r.categorias.map((c) => [c.id, c]));
+  if (mapa) mapa.pintar(r.items, cats);
+  pintarLeyenda(r);
+  $("#vista").innerHTML = vista(r, reusada, cot);
+  if (cot) { $("#vista .kpis")?.insertAdjacentHTML("afterend", `<section class="sec" id="secFicha"></section>`); pintarFicha(cot.cotizacion_id); }
+  $("#stage").scrollTo({top: 0});
+  document.querySelectorAll(".card").forEach((c) => c.classList.toggle("active", !!cot && c.dataset.cot === cot.cotizacion_id));
+  if (reusada) toast("Este punto ya estaba capturado: se abrió desde la base, sin volver a consultar");
+}
+function pintarLeyenda(r) {
+  const con = r.categorias.filter((c) => c.lugares);
+  $("#leyenda").className = "leyenda" + (con.length ? " on" : "");
+  $("#leyenda").innerHTML = con.map((c) => `<button data-cat="${esc(c.id)}" class="${ocultas.has(c.id) ? "off" : ""}"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.etiqueta)} · ${num(c.lugares)}</button>`).join("");
+}
+function alternar(cat) {
+  ocultas.has(cat) ? ocultas.delete(cat) : ocultas.add(cat);
+  if (mapa) mapa.ver(cat, !ocultas.has(cat));
+  document.querySelectorAll(`[data-cat="${CSS.escape(cat)}"]`).forEach((el) => el.classList.toggle("off", ocultas.has(cat)));
+}
+const cab = (n, titulo, em, lead) => `<div class="sec-head"><div class="sec-num">${n}</div><div><h2 class="sec-title">${titulo} <em>${em}</em></h2>${lead ? `<p class="sec-lead">${lead}</p>` : ""}</div></div>`;
+const dato = (dt, dd, sub) => dd == null || dd === "" ? "" : `<div class="fact"><dt>${dt}</dt><dd>${dd}${sub ? `<small>${sub}</small>` : ""}</dd></div>`;
+
+function vista(r, reusada, cot) {
+  const p = r.punto, pr = r.predio || {}, cur = r.curaduria, ind = r.indicadores;
+  const fecha = new Date(r.creada_en).toLocaleString("es-CO", {dateStyle: "long", timeStyle: "short"});
+  const lugares = r.categorias.reduce((a, c) => a + c.lugares, 0);
+  let h = `<header class="hero"><div>
+      <div class="eyebrow">${cot ? `Cotización para ${esc(cot.cliente_nombre)} · ${esc(DOC(cot))} · ${esc(cot.comercial_nombre || sesionActual?.nombre || "")} · datos del ` : "Captura de entorno · "}${esc(fecha)}${reusada ? " · abierta desde la base" : ""}</div>
+      <h1>${esc(p.direccion_catastral || p.direccion_ingresada)}${pr.barrio_nombre ? ` <em>— ${esc(pr.barrio_nombre)}, ${esc(pr.comuna_nombre || "")}</em>` : ""}</h1>
+      <div class="hero-pie"><div class="tags">
+        <span class="tag ink">${esc(PREC[p.precision] || p.precision || "sin precisión")}</span>
+        <span class="tag">${esc(ORIGEN[p.origen] || p.origen)}</span>
+        ${pr.cbml ? `<span class="tag sage">CBML <code>${esc(pr.cbml)}</code></span>` : ""}
+        ${r.conjunto.nombre ? `<span class="tag cream">${esc(r.conjunto.nombre)}</span>` : ""}
+        ${p.en_cobertura === 0 ? `<span class="tag alerta">Fuera de Medellín</span>` : ""}
+        ${r.estado !== "ok" ? `<span class="tag alerta">Captura ${esc(r.estado)}</span>` : ""}
+      </div>
+      <div class="acciones">
+        <a class="btn btn-line" href="/api/capturas/${esc(r.captura_id)}/exportar?tabla=entorno"><span>CSV entorno</span></a>
+        ${r.ofertas.total ? `<a class="btn btn-line" href="/api/capturas/${esc(r.captura_id)}/exportar?tabla=ofertas"><span>CSV ofertas</span></a>` : ""}
+        <a class="btn btn-line" href="/api/capturas/${esc(r.captura_id)}/exportar?tabla=bitacora"><span>CSV bitácora</span></a>
+        <button class="btn btn-ink" data-act="recapturar"><span>Volver a capturar</span></button>
+      </div></div></div></header>`;
+  h += `<div class="kpis">
+      <div class="kpi"><label>Lugares únicos</label><div class="v">${num(lugares)}</div><div class="s">en ${num(p.radio_m)} m, sin repetir entre fuentes</div></div>
+      <div class="kpi"><label>Registros guardados</label><div class="v">${num(cur.registros)}</div><div class="s">excluidos, cada uno con su motivo: ${num(cur.excluidos)}</div></div>
+      <div class="kpi"><label>Duplicados enlazados</label><div class="v">${num(cur.enlazados)}</div><div class="s">mismo lugar en dos fuentes; no se borran</div></div>
+      <div class="kpi"><label>Ajustes de Claude</label><div class="v">${num(cur.cambios_claude)}</div><div class="s">${cur.proveedor ? `propuestas rechazadas por validación: ${num(cur.rechazados_claude)}` : "esta captura quedó solo con reglas"}</div></div>
+      <div class="kpi"><label>En revisión</label><div class="v">${num(cur.en_revision)}</div><div class="s">pares dudosos que esperan decisión</div></div>
+    </div>`;
+  if (r.avisos.length) h += `<div class="mt">${r.avisos.map((a) => `<div class="aviso">${esc(a)}</div>`).join("")}</div>`;
+
+  /* 01 PREDIO */
+  const norma = {ok: "Cruce informativo con la capa POT vigente", pendiente_capa: "La capa POT no respondió: pendiente", pendiente_fuente_municipal: "Fuera de Medellín: pendiente la fuente municipal"}[pr.estado_norma] || "";
+  h += `<section class="sec">${cab("01", "Predio", "y norma", "Lo que dicen el catastro y el POT sobre el punto. Es un cruce informativo: no vale como certificado catastral ni como concepto urbanístico.")}
+    <div class="g-7-5"><div class="panel"><dl>
+      ${dato("Dirección ingresada", esc(p.direccion_ingresada))}
+      ${dato("Placa oficial más cercana", pr.via_cercana ? `${esc(pr.via_cercana)} # ${esc(pr.placa_cercana)}` : "", pr.dist_placa_m != null ? `a ${metros(pr.dist_placa_m)} del punto · código postal ${esc(pr.codigo_postal || "—")}` : "")}
+      ${dato("Barrio · comuna", pr.barrio_nombre ? `${esc(pr.barrio_nombre)} <code>${esc(pr.barrio_cod)}</code> · ${esc(pr.comuna_nombre || "")}` : "")}
+      ${dato("Lote", pr.cbml ? `CBML <code>${esc(pr.cbml)}</code> · ${num(pr.area_lote)} m²` : "", pr.es_ph == null ? "" : (pr.es_ph ? "Propiedad horizontal o condominio" : "No es propiedad horizontal") + (pr.tipo_lote ? ` · tipo de lote ${esc(pr.tipo_lote)}` : ""))}
+      ${dato("Construcción", pr.n_construcciones ? `${num(pr.pisos_max)} pisos (máximo) · ${num(pr.area_construida)} m² construidos` : "", pr.n_construcciones ? `${num(pr.n_construcciones)} construcciones registradas en el lote` : "")}
+      ${dato("Tratamiento POT", pr.pot_tratamiento ? `<strong>${esc(pr.pot_tratamiento)}</strong> <code>${esc(pr.pot_codigo || "")}</code>` : (norma ? `<em>${esc(norma)}</em>` : ""), pr.pot_tratamiento ? `${esc(pr.pot_clase_suelo || "")} · ${esc(norma)}` : "")}
+      ${dato("Uso general del suelo", esc(pr.pot_uso_general || ""))}
+      ${dato("Valor de referencia del suelo", pr.zge_valor_m2 ? `$ ${num(pr.zge_valor_m2)} / m²` : "", pr.zge_valor_m2 ? `Zona geoeconómica, vigencia ${esc(pr.zge_vigencia || "—")}. Referencia oficial: no es precio de mercado.` : "")}
+      ${dato("Patrimonio", pr.bic_nombre ? `Bien de interés cultural: ${esc(pr.bic_nombre)}` : (pr.en_zona_influencia_bic ? "En zona de influencia de un bien de interés cultural" : ""))}
+      ${dato("Cuadrante de policía", esc(pr.cuadrante_policia || ""), pr.estacion_policia ? `Estación ${esc(pr.estacion_policia)}` : "")}
+      ${r.predio ? "" : `<div class="fact"><dt>Catastro</dt><dd><em>Sin respuesta de la capa oficial para este punto.</em></dd></div>`}
+    </dl></div>
+    <div class="panel dark"><h4><span>Ubicación</span><span>${esc(p.precision || "")}</span></h4>
+      ${p.lat != null ? `<div style="display:grid;gap:16px"><div class="coord"><small>Latitud</small>${p.lat.toFixed(6)}</div><div class="coord"><small>Longitud</small>${p.lng.toFixed(6)}</div></div>` : `<p class="obs">Las coordenadas de esta captura vencieron (regla de 30 días de Google).</p>`}
+      <div class="kv">
+        <div><span>Origen del punto</span><b>${esc(ORIGEN[p.origen] || p.origen)}</b></div>
+        <div><span>Transporte masivo</span><b>${pr.estacion_masiva ? `${esc(pr.estacion_masiva)} · ${metros(pr.estacion_masiva_m)}` : "—"}</b></div>
+        <div><span>Conjunto o edificio</span><b>${r.conjunto.nombre ? `${esc(r.conjunto.nombre)}<br><small style="font-weight:400;color:#b8cfc6">${esc(ORIGEN[r.conjunto.origen] || r.conjunto.origen || "")}</small>` : "sin identificar"}</b></div>
+      </div>
+      <div class="conj"><input id="conjEdit" value="${esc(r.conjunto.nombre || "")}" placeholder="Corregir el nombre del conjunto" aria-label="Nombre del conjunto"><button class="btn btn-cream" data-act="conjunto"><span>Guardar</span></button></div>
+    </div></div></section>`;
+
+  /* 02 ENTORNO */
+  const orden = ["geomedellin", "catastro", "osm", "google"];
+  const fuentes = [...new Set(r.categorias.flatMap((c) => Object.keys(c.por_fuente)))].sort((a, b) => orden.indexOf(a) - orden.indexOf(b));
+  h += `<section class="sec">${cab("02", "Entorno", "a 1 km", "Lugares únicos por categoría. Toca una tarjeta para ocultarla o mostrarla en el mapa (los edificios y conjuntos abren ocultos porque son muchos). Los establecimientos del registro mercantil y las cámaras van aparte, en la sección 03, para no inflar las categorías.")}
+    <div class="equip">${r.categorias.map((c) => `<button class="eq ${c.lugares ? "" : "cero"} ${ocultas.has(c.id) ? "off" : ""}" data-cat="${esc(c.id)}">
+        <div class="cab"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.etiqueta)}${c.saturado ? " ⚠" : ""}</div>
+        <b>${num(c.lugares)}</b><small>${c.dist_min_m != null ? `el más cercano a ${metros(c.dist_min_m)}` : "sin registros"}</small></button>`).join("")}</div>
+    <div class="g-7-5 mt"><div class="panel" style="padding:10px 10px 4px"><h4 style="padding:14px 14px 0"><span>Registros por categoría y fuente</span><span>antes de unir duplicados</span></h4>
+      <div style="overflow:auto"><table class="t"><thead><tr><th>Categoría</th>${fuentes.map((f) => `<th class="r">${esc(FUENTE[f] || f)}</th>`).join("")}<th class="r">Únicos</th></tr></thead><tbody>
+      ${r.categorias.map((c) => `<tr><td class="nw"><span class="dot" style="background:${esc(c.color)}"></span> ${esc(c.etiqueta)}</td>${fuentes.map((f) => `<td class="r">${c.por_fuente[f] != null ? num(c.por_fuente[f]) : "·"}</td>`).join("")}<td class="r"><b>${num(c.lugares)}</b></td></tr>`).join("")}
+      </tbody></table></div></div>
+    <div class="panel alt"><h4><span>Qué tan cerca están</span><span>lugares únicos</span></h4>
+      <div class="anillo-ley">${CFG.anillos_m.map((m, i) => `<span><i style="opacity:${[1, .55, .22][i] ?? .22}"></i>hasta ${m >= 1000 ? num(m / 1000, 1) + " km" : m + " m"}</span>`).join("")}</div>
+      ${r.categorias.filter((c) => c.lugares).map((c) => { const a = CFG.anillos_m.map((m) => ind[`conteo_${c.id}_${m}m`]?.valor ?? 0), tot = Math.max(1, a[a.length - 1]);
+        return `<div class="barra"><label>${esc(c.etiqueta)}</label><div class="anillo" title="${esc(CFG.anillos_m.map((m, i) => `${a[i]} a ${m} m`).join(" · "))}">${a.map((v, i) => `<i style="width:${v / tot * 100}%;background:${esc(c.color)};opacity:${[1, .55, .22][i] ?? .22}"></i>`).reverse().join("")}</div><b>${num(a[a.length - 1])}</b></div><div class="anillo-n">${a.slice(0, -1).map((v, i) => `${num(v)} a ${CFG.anillos_m[i]} m`).join(" · ")}</div>`; }).join("") || "<p class='sec-lead'>Sin lugares en el radio.</p>"}
+    </div></div>
+    <div class="panel mt"><h4><span>Los más cercanos por categoría</span><span>${num(r.items.length)} lugares en el mapa</span></h4>
+      ${r.categorias.filter((c) => c.lugares).map((c) => { const lista = r.items.filter((x) => x.categoria === c.id);
+        return `<details><summary><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.etiqueta)}<span class="n">${num(c.lugares)}</span></summary>
+          ${lista.slice(0, 25).map((x) => `<div class="lugar"><span>${esc(x.nombre || "Sin nombre")} <small>· ${esc((x.subtipo || "").replace(/_/g, " "))} · ${esc(FUENTE[x.fuente] || x.fuente)}${x.n_fuentes > 1 ? ` · ${x.n_fuentes} fuentes` : ""}${x.curado_por === "claude" ? " · ajustado por Claude" : ""}</small></span><b>${metros(x.distancia_m)}</b></div>`).join("")}
+          ${lista.length > 25 ? `<div class="lugar"><small>… y ${num(c.lugares - 25)} más en el CSV</small><b></b></div>` : ""}</details>`; }).join("")}
+    </div></section>`;
+
+  /* 03 REGISTROS MASIVOS */
+  const est = ind.establecimientos_activos, of = ind.ofertas_historicas, cam = ind.camaras_cctv;
+  const medianas = Object.entries(ind).filter(([k]) => k.startsWith("oferta_pedido_m2_mediana_"));
+  if (est || of || cam) {
+    h += `<section class="sec">${cab("03", "Registros", "masivos", "Capas que se guardan completas en la base y aquí solo se resumen.")}<div class="g2">`;
+    if (est) { const d = est.detalle || {}, cats = Object.entries(d.por_categoria || {}), mx = Math.max(1, ...cats.map((x) => x[1]));
+      const etq = Object.fromEntries(r.categorias.map((c) => [c.id, c.etiqueta]));
+      h += `<div class="panel"><h4><span>Establecimientos activos · Industria y Comercio</span></h4>
+        <div class="grande">${num(est.valor)}<small>${num(ind.establecimientos_por_km2?.valor, 1)} por km²</small></div>
+        <p class="sec-lead" style="margin:8px 0 14px;font-size:12px">Clasificados por código CIIU. Contribuyentes sin local, marcados y fuera del conteo: ${num(d.sin_establecimiento_fisico)}.</p>
+        ${cats.map(([k, v]) => `<div class="barra"><label>${esc(etq[k] || k)}</label><div><i style="width:${v / mx * 100}%"></i></div><b>${num(v)}</b></div>`).join("")}</div>`; }
+    h += `<div style="display:grid;gap:18px;align-content:start">`;
+    h += `<div class="panel dark" id="panelOfertas"><h4><span>Ofertas inmobiliarias</span><span>inmobiliarias + OIME</span></h4><p class="nota">Cargando las ofertas de lo que pidió el cliente…</p></div>`;
+    if (cam) h += `<div class="panel alt"><h4><span>Cámaras de seguridad (CCTV)</span></h4><div class="grande">${num(cam.valor)}<small>en ${num(p.radio_m)} m</small></div></div>`;
+    h += `</div></div></section>`;
+  }
+
+  /* 04 CURADURÍA */
+  const ref = (t) => { const partes = String(t || "").split(":"); return partes.length > 1 ? partes.slice(1).join(":") : partes[0]; };
+  const regla = (t) => String(t || "").replace(/_/g, " ").replace(":", ": ");
+  h += `<section class="sec">${cab("04", "Depuración", "de los datos", "Primero corren las reglas, que son reproducibles. Claude revisa después solo lo dudoso, y cada propuesta suya se valida antes de aplicarse.")}
+    <div class="g2">
+      <div class="panel alt"><h4><span>Bitácora de cambios</span></h4>
+        <div class="barra"><label>Por reglas</label><div><i style="width:100%"></i></div><b>${num(cur.cambios_regla)}</b></div>
+        <div class="barra"><label>Aceptados de Claude</label><div><i style="width:${cur.cambios_regla ? Math.min(100, cur.cambios_claude / cur.cambios_regla * 100) : (cur.cambios_claude ? 100 : 0)}%"></i></div><b>${num(cur.cambios_claude)}</b></div>
+        <div class="barra"><label>Rechazados a Claude</label><div><i style="width:${cur.cambios_regla ? Math.min(100, cur.rechazados_claude / cur.cambios_regla * 100) : (cur.rechazados_claude ? 100 : 0)}%;background:#e08a6d"></i></div><b>${num(cur.rechazados_claude)}</b></div>
+        <p class="sec-lead" style="font-size:12px;margin-top:10px">Cada cambio guarda el valor anterior, la regla y quién lo propuso. La bitácora completa se descarga en CSV.</p></div>
+      <div class="panel dark"><h4><span>Observaciones de Claude sobre la calidad</span><span>${cur.proveedor ? esc(`${cur.proveedor.replace("_", " ")} · ${cur.modelo || ""}`) : ""}</span></h4>
+        ${cur.nota.length ? cur.nota.map((n) => `<p class="obs">${esc(n)}</p>`).join("") : `<p class="obs" style="color:#b8cfc6">${cur.proveedor ? "Claude no dejó observaciones." : "Claude no intervino en esta captura: quedó depurada solo con reglas."}</p>`}
+      </div>
+    </div>
+    ${cur.muestra.length ? `<div class="panel mt" style="padding:10px 10px 4px"><h4 style="padding:14px 14px 0"><span>Propuestas de Claude</span><span>${num(cur.cambios_claude)} aceptadas · ${num(cur.rechazados_claude)} rechazadas</span></h4>
+      <div style="overflow:auto"><table class="t"><thead><tr><th>Registro</th><th>Campo</th><th>Antes</th><th>Propuesto</th><th>Resultado</th></tr></thead><tbody>
+        ${cur.muestra.map((m) => `<tr><td class="largo"><code>${esc(ref(m.item_ref))}</code></td><td class="nw">${esc(regla(m.campo))}</td><td class="largo">${esc(m.valor_antes ?? "—")}</td><td class="largo">${esc(m.valor_despues ?? "—")}</td><td><span class="src ${m.aceptado ? "si" : "no"}">${esc(regla(m.regla))}</span></td></tr>`).join("")}
+      </tbody></table></div></div>` : ""}
+    </section>`;
+
+  /* 05 FUENTES */
+  const fila = (e) => `<tr><td class="nw">${esc(FUENTE[e.fuente] || e.fuente)}</td><td><code>${esc(e.capa)}</code></td><td><span class="src ${esc(e.estado)}">${esc(e.estado.replace("_", " "))}</span></td><td class="r">${num(e.registros)}</td><td class="r">${e.descartados ? num(e.descartados) : "·"}</td><td class="r">${num(e.llamadas)}</td><td class="largo">${esc(e.mensaje || "")}</td></tr>`;
+  const cabeza = `<thead><tr><th>Fuente</th><th>Capa</th><th>Estado</th><th class="r">Registros</th><th class="r">Fuera del radio</th><th class="r">Llamadas</th><th>Detalle</th></tr></thead>`;
+  const delPunto = r.ejecuciones.filter((e) => e.capa.startsWith("punto_")), delRadio = r.ejecuciones.filter((e) => !e.capa.startsWith("punto_"));
+  const conFalla = r.ejecuciones.filter((e) => !["ok", "omitida"].includes(e.estado)).length;
+  h += `<section class="sec">${cab("05", "Fuentes", "y trazabilidad", "Cada capa consultada, con su estado. Una capa que falla queda marcada como falla: no se cuenta como “cero resultados”.")}
+    <div class="panel" style="padding:10px 10px 4px"><h4 style="padding:14px 14px 0"><span>Barrido del radio</span><span>${conFalla ? `${num(conFalla)} con novedad` : "todas respondieron"}</span></h4>
+      <div style="overflow:auto"><table class="t">${cabeza}<tbody>${delRadio.map(fila).join("")}</tbody></table></div>
+      <details style="border:0;padding:0 14px"><summary>Consultas sobre el punto del predio<span class="n">${num(delPunto.length)}</span></summary>
+        <div style="overflow:auto"><table class="t">${cabeza}<tbody>${delPunto.map(fila).join("")}</tbody></table></div></details>
+    </div></section>`;
+
+  h += `<div class="disclaimer"><p>${esc(r.aviso_alcance)}</p>
+    <small>${r.atribuciones.map(esc).join(" · ")}<br>Captura ${esc(r.captura_id)} · configuración ${esc(r.huella_config)} · versión ${esc(r.version)} · ${num(r.duracion_s, 1)} s${r.llamadas_google ? ` · ${num(r.llamadas_google)} llamadas a Google` : ""}</small></div>`;
+  return h;
+}
+
+
+/* ======================= APLICACIÓN ÚNICA · utilidades ======================= */
+const VIZ = {serie: "#178a66", alta: "#14503f", media: "#178a66", baja: "#74bfa3", gris: "#c5cac4"};
+const SERIES = {};
+const DOC = (c) => `${c.cliente_tipo_documento || c.tipo_documento || "CC"} ${c.cliente_documento_mascara || c.documento_mascara || ""}`;
+const cop = (n) => n == null ? "—" : "$ " + num(Math.round(n));
+const pct = (v, d = 0) => v == null || isNaN(v) ? "—" : `${num(v * 100, d)} %`;
+const fechaCorta = (iso) => iso ? new Date(iso.length === 10 ? iso + "T12:00:00" : iso).toLocaleDateString("es-CO", {day: "numeric", month: "short"}) : "—";
+const fechaHora = (iso) => iso ? new Date(iso).toLocaleString("es-CO", {dateStyle: "medium", timeStyle: "short"}) : "—";
+const esSup = () => sesionActual?.rol === "supervisor";
+const esAdmin = () => sesionActual?.rol === "admin";
+const hoyISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const masDias = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const TIPO_INM = (t) => t ? String(t).replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "Sin especificar";
+const ESTADO_INM = (e) => (CFG?.inmueble.etiquetas_estado || {})[e] || (e === "sin_clasificar" || !e ? "Sin declarar" : e);
+const ESTADO_FICHA = {ok: "Ficha lista", sin_mercado: "Ficha sin comparables", incompleta: "Faltan datos del inmueble", error: "Ficha con error"};
+const BASE = {oime: "Ofertas OIME 2023", muestra_v1: "Muestra Venture One", sin_mercado: "Sin mercado"};
+
+/* ---- tooltip único (texto por textContent: los nombres son datos) ---- */
+const tipEl = document.createElement("div"); tipEl.className = "tip"; tipEl.setAttribute("role", "status"); document.body.appendChild(tipEl);
+function tipVer(x, y, valor, etiqueta) {
+  const b = document.createElement("b"), s = document.createElement("span"); b.textContent = valor; s.textContent = etiqueta;
+  tipEl.replaceChildren(b, s); tipEl.classList.add("on");
+  tipEl.style.left = Math.max(8, Math.min(x + 14, innerWidth - tipEl.offsetWidth - 8)) + "px";
+  tipEl.style.top = Math.max(8, y - tipEl.offsetHeight - 12) + "px";
+}
+const tipFuera = () => tipEl.classList.remove("on");
+document.addEventListener("pointermove", (e) => {
+  const zona = e.target.closest?.(".linea-zona");
+  if (zona) return void cruzLinea(zona, e);
+  const m = e.target.closest?.("[data-tip]");
+  m ? tipVer(e.clientX, e.clientY, m.dataset.tipv, m.dataset.tip) : tipFuera();
+});
+document.addEventListener("pointerleave", tipFuera, true);
+document.addEventListener("focusin", (e) => { const m = e.target.closest?.("[data-tip]"); if (m) { const r = m.getBoundingClientRect(); tipVer(r.left + r.width / 2, r.top, m.dataset.tipv, m.dataset.tip); } });
+document.addEventListener("focusout", tipFuera);
+
+/* ---- gráficas ---- */
+function barras(filas, unidad = "", vacio = "Sin datos en el periodo") {
+  if (!filas.length) return `<p class="viz-vacio">${esc(vacio)}</p>`;
+  const max = Math.max(...filas.map((f) => f.n), 1);
+  return `<div class="bars">${filas.map((f) => `<div class="bar-fila" tabindex="0" data-tip="${esc(f.etiqueta)}" data-tipv="${esc(num(f.n) + unidad)}"><span class="bar-rot">${esc(f.etiqueta)}</span><span class="bar-pista"><i style="width:${(f.n / max * 100).toFixed(1)}%"></i></span><b>${num(f.n)}</b></div>`).join("")}</div>`;
+}
+function medidores(filas, vacio = "Sin comerciales a cargo") {
+  if (!filas.length) return `<p class="viz-vacio">${esc(vacio)}</p>`;
+  return `<div class="meters">${filas.map((f) => {
+    const av = f.meta ? Math.min(f.hechas / f.meta, 1) : 0;
+    const lectura = f.meta ? `${num(f.hechas)} de ${num(f.meta)} · ${pct(f.hechas / f.meta)}` : `${num(f.hechas)} · sin meta fijada`;
+    return `<div class="meter-fila" tabindex="0" data-tip="${esc(f.nombre)}" data-tipv="${esc(lectura)}"><span class="bar-rot">${esc(f.nombre)}</span><span class="meter-pista ${f.meta ? "" : "sin"}"><i style="width:${(av * 100).toFixed(1)}%"></i></span><b>${num(f.hechas)}<small>${f.meta ? ` / ${num(f.meta)}` : " · sin meta"}</small></b></div>`;
+  }).join("")}</div>`;
+}
+function segmentada(partes, nombre, vacio = "Sin datos en el periodo") {
+  const con = partes.filter((x) => x.n), total = con.reduce((a, x) => a + x.n, 0);
+  if (!total) return `<p class="viz-vacio">${esc(vacio)}</p>`;
+  return `<div class="seg" role="img" aria-label="${esc(nombre + ": " + con.map((x) => x.etiqueta + " " + x.n).join(", "))}">${con.map((x) => {
+    const parte = x.n / total;
+    return `<i tabindex="0" style="flex:${x.n};background:${x.color};color:${x.clara ? "#0a1628" : "#fff"}" data-tip="${esc(x.etiqueta)}" data-tipv="${esc(`${num(x.n)} · ${pct(parte)}`)}">${parte >= .14 ? pct(parte) : ""}</i>`;
+  }).join("")}</div><div class="leyenda-viz">${con.map((x) => `<span><i style="background:${x.color}"></i>${esc(x.etiqueta)} · ${num(x.n)}</span>`).join("")}</div>`;
+}
+const techo = (v) => [1, 2, 4, 6, 8, 10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000, 2000, 4000, 6000, 8000, 10000].find((p) => p >= v) || v;
+const LIN = {W: 720, H: 230, l: 36, r: 20, t: 18, b: 28};
+function lineaTiempo(serie, id) {
+  if (!serie.length) return `<p class="viz-vacio">Sin datos en el periodo</p>`;
+  SERIES[id] = serie;
+  const {W, H, l, r, t, b} = LIN, tope = techo(Math.max(...serie.map((d) => d.cotizaciones), 1));
+  const x = (i) => l + (serie.length === 1 ? (W - l - r) / 2 : i * (W - l - r) / (serie.length - 1));
+  const y = (v) => H - b - v / tope * (H - t - b);
+  const pts = serie.map((d, i) => `${x(i).toFixed(1)},${y(d.cotizaciones).toFixed(1)}`).join(" ");
+  const marcas = tope === 1 ? [0, 1] : [0, tope / 2, tope];
+  const ult = serie.length - 1, iMax = serie.reduce((a, d, i) => d.cotizaciones > serie[a].cotizaciones ? i : a, 0);
+  const fechas = [...new Set([0, Math.floor(ult / 2), ult])];
+  let s = `<svg class="linea" viewBox="0 0 ${W} ${H}" data-serie="${esc(id)}" role="img" aria-label="Cotizaciones por día, de ${esc(serie[0].fecha)} a ${esc(serie[ult].fecha)}">`;
+  s += marcas.map((v) => `<line class="malla" x1="${l}" x2="${W - r}" y1="${y(v)}" y2="${y(v)}"/><text x="${l - 8}" y="${y(v) + 4}" text-anchor="end">${num(v)}</text>`).join("");
+  s += fechas.map((i) => `<text x="${x(i)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === ult ? "end" : "middle"}">${esc(fechaCorta(serie[i].fecha))}</text>`).join("");
+  s += `<polygon points="${x(0)},${y(0)} ${pts} ${x(ult)},${y(0)}" fill="${VIZ.serie}" opacity=".1"/><polyline points="${pts}" fill="none" stroke="${VIZ.serie}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<line class="cruz" y1="${t}" y2="${H - b}"/><circle class="punto-cruz" r="5" fill="${VIZ.serie}" stroke="#fff" stroke-width="2" visibility="hidden"/>`;
+  if (serie[iMax].cotizaciones > 0) s += `<circle cx="${x(iMax)}" cy="${y(serie[iMax].cotizaciones)}" r="4" fill="${VIZ.serie}" stroke="#fff" stroke-width="2"/><text class="valor" x="${x(iMax)}" y="${y(serie[iMax].cotizaciones) - 10}" text-anchor="${iMax > ult * .85 ? "end" : iMax < ult * .15 ? "start" : "middle"}">${num(serie[iMax].cotizaciones)}</text>`;
+  return s + `<rect class="linea-zona" x="${l}" y="${t}" width="${W - l - r}" height="${H - t - b}" fill="transparent"/></svg>`;
+}
+function cruzLinea(zona, e) {
+  const svg = zona.ownerSVGElement, serie = SERIES[svg.dataset.serie]; if (!serie) return;
+  const {W, H, l, r, t, b} = LIN, caja = svg.getBoundingClientRect(), px = (e.clientX - caja.left) / caja.width * W;
+  const paso = serie.length > 1 ? (W - l - r) / (serie.length - 1) : 1;
+  const i = Math.max(0, Math.min(serie.length - 1, Math.round((px - l) / paso))), d = serie[i];
+  const tope = techo(Math.max(...serie.map((q) => q.cotizaciones), 1));
+  const cx = serie.length === 1 ? l + (W - l - r) / 2 : l + i * paso, cy = H - b - d.cotizaciones / tope * (H - t - b);
+  const cruz = svg.querySelector(".cruz"), pc = svg.querySelector(".punto-cruz");
+  cruz.setAttribute("x1", cx); cruz.setAttribute("x2", cx); cruz.style.visibility = "visible";
+  pc.setAttribute("cx", cx); pc.setAttribute("cy", cy); pc.setAttribute("visibility", "visible");
+  tipVer(e.clientX, e.clientY, `${num(d.cotizaciones)} ${d.cotizaciones === 1 ? "cotización" : "cotizaciones"}`,
+         `${new Date(d.fecha + "T12:00:00").toLocaleDateString("es-CO", {weekday: "long", day: "numeric", month: "long"})} · ${num(d.clientes)} ${d.clientes === 1 ? "cliente" : "clientes"}`);
+}
+document.addEventListener("pointerout", (e) => {
+  const zona = e.target.closest?.(".linea-zona"); if (!zona) return;
+  zona.ownerSVGElement.querySelector(".cruz").style.visibility = "hidden"; zona.ownerSVGElement.querySelector(".punto-cruz").setAttribute("visibility", "hidden"); tipFuera();
+});
+const tablaDatos = (cab, filas) => `<details class="tabla"><summary>Ver los datos en tabla</summary><div style="overflow:auto"><table class="t"><thead><tr>${cab.map((c, i) => `<th class="${i ? "r" : ""}">${esc(c)}</th>`).join("")}</tr></thead><tbody>${filas.map((f) => `<tr>${f.map((c, i) => `<td class="${i ? "r" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+
+/* ======================= MARKDOWN DE LA FICHA (se escapa antes de dar formato) ======================= */
+function mdEnLinea(texto) {
+  return String(texto).split("`").map((parte, i) => i % 2 ? `<code>${esc(parte)}</code>` :
+    esc(parte).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[\s(>])_([^_]+)_(?=$|[\s).,;:<])/g, "$1<em>$2</em>")).join("");
+}
+function mdAHtml(md) {
+  const lineas = String(md || "").replace(/\r/g, "").replace(/^---\n[\s\S]*?\n---\n/, "").split("\n");
+  let h = "", i = 0;
+  const celdas = (l) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+  while (i < lineas.length) {
+    const l = lineas[i];
+    if (/^#{1,3} /.test(l)) { const n = l.match(/^#+/)[0].length; h += `<h${n + 1}>${mdEnLinea(l.slice(n + 1))}</h${n + 1}>`; i++; continue; }
+    if (l.startsWith("|")) {
+      const filas = []; while (i < lineas.length && lineas[i].startsWith("|")) filas.push(celdas(lineas[i++]));
+      const der = (filas[1] || []).map((c) => /^-+:$/.test(c)), cab = filas[0], cuerpo = filas.slice(2);
+      h += `<div class="tabla-md"><table>${cab.some(Boolean) ? `<thead><tr>${cab.map((c, k) => `<th class="${der[k] ? "r" : ""}">${mdEnLinea(c)}</th>`).join("")}</tr></thead>` : ""}<tbody>${cuerpo.map((f) => `<tr>${f.map((c, k) => `<td class="${der[k] ? "r" : ""}">${mdEnLinea(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      continue;
+    }
+    if (l.startsWith("- ")) { h += "<ul>"; while (i < lineas.length && lineas[i].startsWith("- ")) h += `<li>${mdEnLinea(lineas[i++].slice(2))}</li>`; h += "</ul>"; continue; }
+    if (l.startsWith("> ")) { const b = []; while (i < lineas.length && lineas[i].startsWith("> ")) b.push(mdEnLinea(lineas[i++].slice(2))); h += `<blockquote>${b.join("<br>")}</blockquote>`; continue; }
+    if (!l.trim()) { i++; continue; }
+    const p = []; while (i < lineas.length && lineas[i].trim() && !/^(#{1,3} |\||- |> )/.test(lineas[i])) p.push(mdEnLinea(lineas[i++].replace(/ {2}$/, "")));
+    h += `<p>${p.join("<br>")}</p>`;
+  }
+  return h;
+}
+
+/* ======================= DATOS DEL INMUEBLE ======================= */
+const CAMPO = {estado: "Estado", habitaciones: "Habitaciones", banos: "Baños", parqueaderos: "Parqueaderos"};
+const ID_CAMPO = {estado: "Estado", habitaciones: "Hab", banos: "Banos", parqueaderos: "Parq"};
+const camposTipo = (tipo) => (CFG.inmueble.campos_por_tipo || {})[tipo] || ["area_m2"];
+function opcionesInmueble(prefijo, valores = {}) {
+  const c = CFG.inmueble, sel = $(`#${prefijo}Tipo`), previo = valores.tipo ?? sel.value;
+  const tipos = prefijo === "inm" && busca.size ? c.tipos.filter((x) => busca.has(x)) : c.tipos;
+  sel.innerHTML = `<option value="">Elige…</option>` + tipos.map((x) => `<option value="${esc(x)}">${esc(TIPO_INM(x))}</option>`).join("");
+  sel.value = tipos.includes(previo) ? previo : (tipos.length === 1 ? tipos[0] : "");
+  const clase = prefijo === "inm" ? "oscuro" : "claro";
+  $(`#${prefijo}Campos`).innerHTML = Object.keys(CAMPO).map((k) => `<div class="cmp oculto" data-de="${prefijo}" data-campo="${k}"><div>
+      <label class="rot" for="${prefijo}${ID_CAMPO[k]}">${CAMPO[k]} <span class="opc">opcional</span></label>
+      ${k === "estado" ? `<select class="${clase}" id="${prefijo}Estado" style="width:100%"><option value="">Sin indicar</option>${Object.entries(c.etiquetas_estado).map(([e, v]) => `<option value="${esc(e)}">${esc(v)}</option>`).join("")}</select>`
+        : `<input class="${clase}" id="${prefijo}${ID_CAMPO[k]}" data-entero inputmode="numeric" autocomplete="off" maxlength="2" placeholder="Solo números" style="width:100%">`}</div></div>`).join("");
+  Object.keys(CAMPO).forEach((k) => { if (valores[k] != null) $(`#${prefijo}${ID_CAMPO[k]}`).value = valores[k]; });
+  ajustarCampos(prefijo);
+}
+function ajustarCampos(prefijo) {
+  const tipo = $(`#${prefijo}Tipo`).value, ver = new Set(tipo ? camposTipo(tipo) : []);
+  document.querySelectorAll(`.cmp[data-de="${prefijo}"]`).forEach((el) => {
+    const on = ver.has(el.dataset.campo); el.classList.toggle("oculto", !on);
+    if (!on) el.querySelectorAll("input,select").forEach((x) => { x.value = ""; });
+  });
+}
+function filaExtra(prefijo, x = {}) {
+  const clase = prefijo === "inm" ? "oscuro" : "claro", c = CFG.inmueble;
+  return `<div class="extra"><input class="${clase}" data-x="nombre" maxlength="${num(c.extra_nombre_max)}" placeholder="Característica (ej.: Balcón)" value="${esc(x.nombre || "")}" aria-label="Nombre de la característica">
+    <input class="${clase}" data-x="valor" maxlength="${num(c.extra_valor_max)}" placeholder="Valor (ej.: Sí)" value="${esc(x.valor || "")}" aria-label="Valor de la característica">
+    <button type="button" data-act="quita-extra" aria-label="Quitar la característica">×</button></div>`;
+}
+function leerInmueble(prefijo) {
+  const v = (id) => $(`#${prefijo}${id}`)?.value.trim() ?? "";
+  const extras = [...document.querySelectorAll(`#${prefijo}Extras .extra`)].map((f) => ({nombre: f.querySelector('[data-x="nombre"]').value.trim(), valor: f.querySelector('[data-x="valor"]').value.trim()})).filter((x) => x.nombre || x.valor);
+  return {tipo: v("Tipo"), area_m2: v("Area").replace(",", "."), estado: v("Estado"), habitaciones: v("Hab"), banos: v("Banos"), parqueaderos: v("Parq"), extras};
+}
+function faltaInmueble(d) {
+  const c = CFG.inmueble, area = Number(d.area_m2);
+  if (c.obligatorios.includes("tipo") && !d.tipo) return "Elige el tipo de inmueble";
+  if (c.obligatorios.includes("area_m2") && !d.area_m2) return "Escribe el área del inmueble en m²";
+  if (d.area_m2 && (isNaN(area) || area < c.area_m2[0] || area > c.area_m2[1])) return `El área es un número entre ${num(c.area_m2[0])} y ${num(c.area_m2[1])} m²`;
+  if (c.obligatorios.includes("estado") && !d.estado) return "Elige el estado del inmueble";
+  for (const [k, tope] of [["habitaciones", c.max_habitaciones], ["banos", c.max_banos], ["parqueaderos", c.max_parqueaderos]])
+    if (d[k] && (!/^\d+$/.test(d[k]) || Number(d[k]) > tope)) return `${CAMPO[k]} es un número entero de 0 a ${num(tope)}`;
+  if ((d.extras || []).some((x) => !x.nombre || !x.valor)) return "Cada característica adicional lleva nombre y valor";
+  return "";
+}
+function revisarInmueble() {
+  const falta = faltaInmueble(leerInmueble("inm"));
+  $("#notaInmueble").innerHTML = falta ? esc(falta) + "." : `Se buscan comparables del mismo tipo, con área de ±${num(CFG.ficha.tolerancia_area * 100)} % y máximo ${num(CFG.vigencia.max_meses_publicacion)} meses de publicados.`;
+  actualizarBoton();
+}
+
+/* ======================= FICHA DEL INMUEBLE ======================= */
+const TIPO_SEG = (k) => (CFG.supervision.etiquetas_seguimiento || {})[k] || String(k ?? "");
+const plural = (n, uno, varios) => `${num(n)} ${Number(n) === 1 ? uno : varios}`;
+function formInmuebleClaro(inm = {}) {
+  setTimeout(() => { if ($("#finTipo")) { opcionesInmueble("fin", inm); $("#finArea").value = inm.area_m2 ?? ""; $("#finExtras").innerHTML = (inm.extras || []).map((x) => filaExtra("fin", x)).join(""); } }, 0);
+  return `<div class="form-grid claro-form">
+    <label>Tipo de inmueble <span class="req">obligatorio</span> <select class="claro" id="finTipo"></select></label>
+    <label>Área (m²) <span class="req">obligatorio</span> <input class="claro" id="finArea" inputmode="decimal" autocomplete="off"></label>
+    <div id="finCampos" style="grid-column:1/-1"></div>
+    <div id="finExtras" style="grid-column:1/-1"></div>
+    <button class="enlace" type="button" data-act="mas-extra" data-de="fin">+ Agregar otra característica</button>
+    <button class="btn btn-ink" data-act="guardar-inmueble" type="button"><span>Guardar, buscar anuncios y generar la ficha</span></button>
+  </div>`;
+}
+async function pintarFicha(cotId, destino = "#secFicha") {
+  const caja = $(destino); if (!caja) return;
+  caja.dataset.cot = cotId;
+  caja.innerHTML = `${cab("00", "Ficha", "del inmueble", "")}<div class="panel"><p class="viz-vacio">Cargando la ficha…</p></div>`;
+  let det = null, f = null;
+  try { det = await api(`/api/cotizaciones/${cotId}`); } catch (e) { caja.innerHTML = `${cab("00", "Ficha", "del inmueble", "")}<div class="panel"><p class="viz-vacio">${esc(e.message)}</p></div>`; return; }
+  if (det.ficha) { try { f = await api(`/api/cotizaciones/${cotId}/ficha`); } catch (_) { f = null; } }
+  if (caja.dataset.cot !== cotId) return;
+  pintarOfertas(det, f, cotId);
+  const q = det.cotizacion, res = f?.resumen || {}, propia = det.es_propia;
+  const lead = "Se arma desde el almacén en esquema estrella con las reglas oficiales del reto. Describe mercado, entorno y norma: no evalúa ni aconseja la compra.";
+  let h = cab("00", "Ficha", "del inmueble", lead);
+  if (!f) {
+    h += `<div class="panel alt"><h4><span>Esta cotización todavía no tiene ficha</span></h4>
+      <p style="font-size:13.5px;line-height:1.55;margin-bottom:16px">${q.captura_id ? "Completa los datos del inmueble y genera la ficha. Queda guardada en la carpeta del cliente." : "La captura no terminó bien: vuelve a capturar el predio para poder armar la ficha."}</p>
+      ${q.captura_id && propia ? formInmuebleClaro(q.inmueble) : ""}</div>`;
+    caja.innerHTML = h; return;
+  }
+  h += `<div class="panel"><div class="ficha-cab"><div class="tags">
+      <span class="tag ${f.estado === "ok" ? "ink" : "alerta"}">${esc(ESTADO_FICHA[f.estado] || f.estado)}</span>
+      ${res.confianza && f.estado === "ok" ? `<span class="tag sage">Confianza ${esc(res.confianza)}</span>` : ""}
+      ${res.n ? `<span class="tag">${num(res.n)} comparables</span>` : ""}
+      ${res.mediana ? `<span class="tag cream">Mediana ${esc(cop(res.mediana))} / m²</span>` : ""}
+      <span class="tag">Versión ${num(f.version)}</span></div>
+    <div class="acciones">
+      ${f.archivo_presente ? `<a class="btn btn-ink" data-act="imprimir-cliente" href="/api/cotizaciones/${esc(cotId)}/ficha/cliente?imprimir=1" target="_blank" rel="noopener"><span>Imprimir para el cliente</span></a>` : ""}
+      <a class="btn btn-line" href="/api/cotizaciones/${esc(cotId)}/ficha?descargar=md"><span>Descargar .md</span></a>
+      <a class="btn btn-line" href="/api/cotizaciones/${esc(cotId)}/ficha?descargar=json"><span>Descargar .json</span></a>
+      <button class="btn btn-line" data-act="regenerar-ficha" type="button"><span>Regenerar</span></button>
+    </div></div>
+    ${bloqueEstadoCliente(det.gestion, propia)}
+    ${f.mensaje ? `<div class="aviso">${esc(f.mensaje)}</div>` : ""}
+    ${f.archivo_presente ? "" : `<div class="aviso">El archivo de la ficha no está en la carpeta del cliente. Usa “Regenerar” para crearlo de nuevo.</div>`}
+    ${f.archivo_presente && !f.archivo_integro ? `<div class="aviso">El archivo fue modificado después de generarse: su huella ya no coincide con la registrada.</div>` : ""}
+    ${(f.estado !== "ok" && propia) ? `<h4 style="margin-top:18px"><span>Datos del inmueble</span></h4>${formInmuebleClaro(q.inmueble)}` : ""}
+    <div class="md" style="margin-top:20px">${f.markdown ? mdAHtml(f.markdown) : ""}</div>
+    <p class="ruta">Carpeta del cliente: fichas_clientes/${esc(f.ruta_md)} · corrida ${num(f.corrida_etl)} del ETL · huella ${esc((f.sha256_md || "").slice(0, 16))}${f.versiones.length > 1 ? ` · ${num(f.versiones.length)} versiones guardadas` : ""}</p>
+  </div>`;
+  caja.innerHTML = h;
+}
+/* Estado de la ficha con el cliente: el comercial lo va actualizando; queda el historial */
+function bloqueEstadoCliente(g, propia) {
+  if (!g) return "";
+  const cat = CFG.gestion_cliente, v = g.vigente;
+  const paso = (x) => `<li><b>${esc(x.etiqueta)}</b>${x.motivo_etiqueta ? ` · ${esc(x.motivo_etiqueta)}` : ""} <small>· ${esc(fechaHora(x.registrado_en))}${x.ficha_version ? ` · ficha v${num(x.ficha_version)}` : ""}</small>${x.motivo ? `<br>${esc(x.motivo)}` : ""}${x.nota ? `<br><small>Nota: ${esc(x.nota)}</small>` : ""}</li>`;
+  let h = `<div class="gestion-cli" data-estado-actual="${esc(v.estado)}"><h5>Estado con el cliente <span class="tag ${v.estado === cat.estado_inicial ? "cream" : v.estado === "rechazada" ? "alerta" : "sage"}">${esc(v.etiqueta)}</span>${v.sin_registrar ? `<small style="font-weight:400;color:var(--muted)">Todavía no has registrado nada: indica en qué va.</small>` : `<small style="font-weight:400;color:var(--muted)">desde el ${esc(fechaHora(v.registrado_en))}</small>`}</h5>`;
+  if (propia) {
+    h += `<div class="opciones" role="group" aria-label="Estado de la ficha con el cliente">${cat.estados.map((x) => `<button type="button" data-estado-cli="${esc(x.id)}" data-motivo="${x.exige_motivo ? 1 : 0}" aria-pressed="${!v.sin_registrar && x.id === v.estado}" title="${esc(x.ayuda)}">${esc(x.etiqueta)}</button>`).join("")}</div>
+      <div class="detalle" id="gcMotivoCaja" hidden><select class="claro" id="gcMotivoTipo" aria-label="Motivo"><option value="">Motivo…</option>${cat.motivos_rechazo.map((m) => `<option value="${esc(m.id)}">${esc(m.etiqueta)}</option>`).join("")}</select>
+        <input class="claro" id="gcMotivo" maxlength="${esc(cat.motivo_max)}" placeholder="Qué dijo el cliente (obligatorio)" autocomplete="off"></div>
+      <div class="detalle" style="grid-template-columns:1fr auto"><input class="claro" id="gcNota" maxlength="${esc(cat.nota_max)}" placeholder="Nota (opcional)" autocomplete="off">
+        <button class="btn btn-ink" data-act="guardar-estado-cliente" type="button" disabled><span>Guardar estado</span></button></div>`;
+  }
+  if (g.historial.length) h += `<details ${g.historial.length <= 3 ? "open" : ""}><summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--muted)">Historia con el cliente · ${plural(g.historial.length, "cambio", "cambios")}</summary><ol>${g.historial.map(paso).join("")}</ol></details>`;
+  return h + "</div>";
+}
+function elegirEstadoCliente(boton) {
+  const caja = boton.closest(".gestion-cli");
+  caja.querySelectorAll("[data-estado-cli]").forEach((b) => b.setAttribute("aria-pressed", String(b === boton)));
+  caja.querySelector("#gcMotivoCaja").hidden = boton.dataset.motivo !== "1";
+  caja.querySelector('[data-act="guardar-estado-cliente"]').disabled = false;
+  if (boton.dataset.motivo === "1") caja.querySelector("#gcMotivoTipo").focus();
+}
+async function guardarEstadoCliente(boton) {
+  const caja = boton.closest("[data-cot]"), cotId = caja?.dataset.cot, zona = boton.closest(".gestion-cli");
+  const elegido = zona.querySelector('[data-estado-cli][aria-pressed="true"]'); if (!cotId || !elegido) return;
+  boton.disabled = true;
+  try {
+    await api(`/api/cotizaciones/${cotId}/estado-cliente`, {estado: elegido.dataset.estadoCli, motivo_tipo: zona.querySelector("#gcMotivoTipo").value, motivo: zona.querySelector("#gcMotivo").value, nota: zona.querySelector("#gcNota").value});
+    toast("Estado con el cliente guardado en su historia");
+    await pintarFicha(cotId, "#" + caja.id); if (!esSup()) { listar(); refrescarCliente(); }
+  } catch (e) { toast(e.message, true); boton.disabled = false; }
+}
+async function accionFicha(act, boton) {
+  const caja = boton.closest("[data-cot]"), cotId = caja?.dataset.cot; if (!cotId) return;
+  boton.disabled = true;
+  try {
+    if (act === "guardar-inmueble") {
+      const d = leerInmueble("fin"), falta = faltaInmueble(d);
+      if (falta) { toast(falta, true); return; }
+      toast("Buscando anuncios vigentes en las inmobiliarias. Puede tardar un par de minutos…");
+      await api(`/api/cotizaciones/${cotId}/inmueble`, {inmueble: d});
+    } else if (act === "buscar-inmobiliarias") {
+      toast("Claude Code está leyendo las inmobiliarias. Puede tardar un par de minutos…");
+      const r = await api(`/api/cotizaciones/${cotId}/inmobiliarias`, {});
+      toast(r.rpa.mensaje || "Búsqueda terminada", ["error", "no_disponible"].includes(r.rpa.estado));
+    } else await api(`/api/cotizaciones/${cotId}/ficha`, {});
+    if (act !== "buscar-inmobiliarias") toast("Ficha generada y guardada en la carpeta del cliente");
+    await pintarFicha(cotId, "#" + caja.id); if (!esSup()) { listar(); miGestion(); }
+  } catch (e) { toast(e.message, true); }
+  finally { boton.disabled = false; }
+}
+
+/* Ofertas inmobiliarias de la cotización abierta: solo los tipos que pidió el cliente; anuncios vigentes de las
+   inmobiliarias y, aparte, la referencia histórica del OIME. Muestra qué hizo el RPA en cada sitio. */
+function pintarOfertas(det, f, cotId) {
+  const caja = $("#panelOfertas"); if (!caja) return;
+  caja.dataset.cot = cotId;
+  const q = det.cotizacion, o = f?.ofertas, rpa = q.rpa, ESTADO_RPA = {ok: "leído", sin_resultados: "sin anuncios", bloqueado: "bloqueado", no_legible: "no se dejó leer", error: "falló la lectura", sin_consultar: "no se consultó"};
+  let h = `<h4><span>Ofertas inmobiliarias</span><span>${esc((q.busca || []).map(TIPO_INM).join(" · ") || "sin tipo registrado")}</span></h4>`;
+  if (!o) { caja.innerHTML = h + `<p class="nota">Completa los datos del inmueble para buscar anuncios y armar la ficha.</p>`; return; }
+  const vigentes = o.por_tipo.reduce((s, x) => s + x.vigentes.n, 0), corte = o.vigencia?.corte;
+  h += `<div class="grande">${num(vigentes)} <small>${vigentes === 1 ? "oferta vigente" : "ofertas vigentes"} de lo que pidió el cliente${corte ? ` · publicadas o vistas desde el ${esc(fechaCorta(corte))}` : ""}</small></div>`;
+  h += `<div style="overflow:auto;margin-top:12px"><table class="t of-tabla"><thead><tr><th>Tipo</th><th class="r">Vigentes</th><th class="r">Mediana vigente / m²</th><th class="r">Históricas</th><th class="r">Mediana histórica / m²</th></tr></thead><tbody>
+    ${o.por_tipo.map((x) => `<tr><td>${esc(TIPO_INM(x.tipo))}${x.es_cotizado ? " · se cotiza" : ""}</td><td class="r">${num(x.vigentes.n)}</td><td class="r">${esc(cop(x.vigentes.mediana_m2))}</td><td class="r">${num(x.historicas.n)}</td><td class="r">${esc(cop(x.historicas.mediana_m2))}</td></tr>`).join("")}</tbody></table></div>`;
+  h += `<p class="nota">Vigentes: anuncios leídos en las inmobiliarias. Históricas: ofertas OIME 2023 del Catastro; son <b>precio pedido, no de cierre</b>, sirven de contexto y no entran a los comparables.</p>`;
+  h += `<h4 style="margin-top:18px"><span>Búsqueda en inmobiliarias (RPA con Claude Code)</span><span>${rpa?.duracion_s ? `${num(rpa.duracion_s)} s` : ""}</span></h4>`;
+  if (!rpa?.estado) h += `<p class="nota">Esta cotización todavía no tiene búsqueda en inmobiliarias.</p>`;
+  else {
+    h += `<p class="nota" style="margin-top:0"><b>${esc(rpa.mensaje || rpa.estado)}</b>${rpa.consulta?.barrio ? ` · zona: ${esc(rpa.consulta.barrio)}` : ""}${rpa.consulta?.rango_area ? ` · área ${num(rpa.consulta.rango_area[0])}–${num(rpa.consulta.rango_area[1])} m²` : ""}${rpa.fuera_de_lista ? ` · ${num(rpa.fuera_de_lista)} fuera de los sitios permitidos` : ""}</p>`;
+    const filaP = (x) => `<div class="portal"><b>${esc(x.nombre)}</b><small>${esc(ESTADO_RPA[x.estado] || x.estado)}${x.detalle ? ` · ${esc(x.detalle)}` : ""}</small><span>${num(x.utiles)} útiles${x.descartados ? ` · ${num(x.descartados)} descartados` : ""}</span></div>`;
+    const pp = rpa.por_portal || [], conAnuncios = pp.filter((x) => x.anuncios), resto = pp.filter((x) => !x.anuncios);
+    h += conAnuncios.map(filaP).join("");
+    if (resto.length) h += `<details><summary>${plural(resto.length, "sitio más sin anuncios", "sitios más sin anuncios")} · ver qué pasó en cada uno</summary>${resto.map(filaP).join("")}</details>`;
+    const dep = rpa.depuracion;
+    if (dep?.mensaje) {
+      const enlace = (u, sitio) => String(u || "").startsWith("https://") ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(sitio)}</a>` : esc(sitio);
+      h += `<h4 style="margin-top:18px"><span>Depuración de anuncios</span><span>antes de cargar al almacén</span></h4><p class="nota" style="margin-top:0"><b>${esc(dep.mensaje)}</b></p>`;
+      if ((dep.pares || []).length) h += `<details><summary>${plural(dep.pares.length, "anuncio enlazado como repetido", "anuncios enlazados como repetidos")} · ver cuáles</summary>${dep.pares.map((x) => `<div class="portal"><b>${enlace(x.repetido, x.sitio_repetido)}</b><small>es el mismo inmueble que el de ${enlace(x.conservado, x.sitio_conservado)}, que se conserva</small><span>parecido ${num(x.puntaje * 100)} %</span></div>`).join("")}</details>`;
+    }
+  }
+  if (o.comparables.length) h += `<h4 style="margin-top:18px"><span>Anuncios usados como comparables</span><span>${num(o.comparables.length)}</span></h4><div style="overflow:auto"><table class="t of-tabla"><thead><tr><th>Anuncio</th><th class="r">Área</th><th class="r">Precio</th><th class="r">Precio / m²</th><th>Publicación</th></tr></thead><tbody>
+    ${o.comparables.map((c) => `<tr><td>${String(c.url || "").startsWith("https://") ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.barrio || c.fuente || "ver anuncio")}</a>` : esc(c.barrio || c.fuente || "")}</td><td class="r">${num(c.area_m2, 1)} m²</td><td class="r">${esc(cop(c.precio))}</td><td class="r">${esc(cop(c.precio_m2))}</td><td>${esc(c.fecha ? fechaCorta(c.fecha) : c.vista_el ? "visto el " + fechaCorta(c.vista_el) : "sin fecha")}</td></tr>`).join("")}</tbody></table></div>`;
+  if (det.es_propia) h += `<div style="margin-top:16px"><button class="btn btn-cream" data-act="buscar-inmobiliarias" type="button"><span>Volver a buscar en inmobiliarias</span></button></div>`;
+  caja.innerHTML = h;
+}
+
+/* ======================= MI GESTIÓN (comercial) ======================= */
+async function miGestion() {
+  if (esSup()) return;
+  let g; try { g = await api("/api/mi-gestion"); } catch (_) { return; }
+  const mes = new Date(g.mes + "-15").toLocaleDateString("es-CO", {month: "long"});
+  const av = g.meta_cotizaciones ? Math.min(g.cotizaciones / g.meta_cotizaciones, 1) : 0;
+  $("#gestion").hidden = false;
+  $("#gestion").innerHTML = `<h5><span>Mi meta de ${esc(mes)}</span><b>${num(g.cotizaciones)}${g.meta_cotizaciones ? ` / ${num(g.meta_cotizaciones)}` : ""}</b></h5>
+    ${g.meta_cotizaciones ? `<div class="pista"><i style="width:${(av * 100).toFixed(1)}%"></i></div>` : `<span style="color:rgba(250,250,247,.55)">Tu supervisor aún no fijó la meta de este mes.</span>`}
+    ${g.seguimiento.map((s) => `<div class="seg-nota"><small>${esc(TIPO_SEG(s.tipo))} · ${esc(s.supervisor_nombre)}${s.fecha_compromiso ? ` · para el ${esc(fechaCorta(s.fecha_compromiso))}` : ""}</small>${esc(s.nota)}</div>`).join("")}`;
+}
+
+/* ======================= ADMINISTRACIÓN ======================= */
+const ADM = {vista: "resumen", usuarios: [], sitios: [], descartadas: [], filtro: "", usuario: null, sitio: null};
+const VISTAS_ADM = [["resumen", "Resumen", "Estado de la plataforma"], ["usuarios", "Usuarios", "Crear, cambiar y eliminar"],
+                    ["inmobiliarias", "Inmobiliarias", "Sitios que lee la búsqueda"], ["respaldos", "Respaldos", "Copias de seguridad"],
+                    ["bitacora", "Bitácora", "Qué se cambió y cuándo"]];
+const ROL = (r) => (CFG.roles || {})[r] || r;
+const NIVEL_SITIO = {A: "La búsqueda va en la dirección", B: "Solo con su formulario", C: "Listado sin filtros"};
+const tamano = (b) => b >= 1048576 ? `${num(b / 1048576, 1)} MB` : `${num(b / 1024)} KB`;
+const ACCION_ADM = {usuario_creado: "Usuario creado", usuario_editado: "Usuario cambiado", usuario_eliminado: "Usuario eliminado", clave_restablecida: "Clave restablecida",
+                    sitio_agregado: "Inmobiliaria agregada", sitio_editado: "Inmobiliaria cambiada", sitio_eliminado: "Inmobiliaria eliminada",
+                    respaldo_creado: "Respaldo creado", respaldo_eliminado: "Respaldo eliminado"};
+async function arrancarAdmin() {
+  $("#navAdm").innerHTML = VISTAS_ADM.map(([id, t, sub]) => `<button data-vista-adm="${id}" type="button"><span>${esc(t)}</span><small>${esc(sub)}</small></button>`).join("");
+  $("#ticker").innerHTML = `<span>Venture One · <b>Administración</b></span><i>◆</i><span>${esc(sesionActual.nombre)}</span><i>◆</i><span>Usuarios, inmobiliarias y respaldos</span><i>◆</i>`.repeat(4);
+  irAdm("resumen");
+}
+async function irAdm(vista) {
+  ADM.vista = vista;
+  document.querySelectorAll("#navAdm button").forEach((b) => b.classList.toggle("on", b.dataset.vistaAdm === vista));
+  $("#vista").innerHTML = `<div class="vacio"><p>Cargando…</p></div>`; $("#stage").scrollTo({top: 0});
+  try { await ({resumen: admResumen, usuarios: admUsuarios, inmobiliarias: admInmobiliarias, respaldos: admRespaldos, bitacora: admBitacora})[vista](); }
+  catch (e) { $("#vista").innerHTML = `<div class="vacio"><h1>No se pudo <em>cargar</em></h1><p>${esc(e.message)}</p></div>`; }
+}
+async function admResumen() {
+  const r = await api("/api/admin/sistema"), u = r.usuarios, activos = (u.admin || 0) + (u.supervisor || 0) + (u.comercial || 0), enCurso = r.capturas.en_curso || 0;
+  $("#vista").innerHTML = cabSup("Administración · resumen", "La plataforma", "en un vistazo", "Lo que conviene revisar de vez en cuando. Aquí no aparecen cotizaciones ni datos de clientes.") +
+    `<div class="kpis">
+      <div class="kpi"><label>Usuarios activos</label><div class="v">${num(activos)}</div><div class="s">${plural(u.comercial || 0, "comercial", "comerciales")} · ${plural(u.supervisor || 0, "supervisor", "supervisores")} · ${plural(u.admin || 0, "administrador", "administradores")}</div></div>
+      <div class="kpi"><label>Con la clave inicial</label><div class="v">${num(r.usuarios_con_clave_inicial)}</div><div class="s">${r.usuarios_con_clave_inicial ? "Cámbialas antes de uso real" : "Todas cambiadas"}</div></div>
+      <div class="kpi"><label>Inmobiliarias encendidas</label><div class="v">${num(r.inmobiliarias.encendidas)}</div><div class="s">de ${num(r.inmobiliarias.sitios)} en el catálogo · ${num(r.inmobiliarias.terminos_pendientes)} con términos por revisar</div></div>
+      <div class="kpi"><label>Capturas sin cerrar</label><div class="v">${num(enCurso)}</div><div class="s">${enCurso ? "Quedaron a medias: no alimentan el almacén" : "Ninguna a medias"}</div></div>
+      <div class="kpi"><label>Último respaldo</label><div class="v" style="font-size:26px;line-height:1.2">${r.ultimo_respaldo ? esc(fechaCorta(r.ultimo_respaldo.creado_en)) : "Ninguno"}</div><div class="s">${r.ultimo_respaldo ? esc(tamano(r.ultimo_respaldo.bytes)) : "Crea el primero en Respaldos"}</div></div>
+    </div>
+    <section class="sec" style="padding-top:26px"><div class="panel"><h4><span>Detalle</span><span>versión ${esc(r.version)}</span></h4>
+      <table class="t"><tbody>
+        <tr><td>Base operativa</td><td class="largo"><code>${esc(r.base.ruta)}</code></td><td class="r nw">${esc(tamano(r.base.bytes))}</td></tr>
+        <tr><td>Almacén (se rehace con el ETL)</td><td class="largo"><code>${esc(r.almacen.ruta)}</code></td><td class="r nw">${esc(tamano(r.almacen.bytes))}</td></tr>
+        <tr><td>Registros</td><td colspan="2">${plural(r.clientes, "cliente", "clientes")} · ${plural(r.cotizaciones, "cotización", "cotizaciones")} · ${plural(r.fichas, "ficha", "fichas")}</td></tr>
+        <tr><td>Capturas por estado</td><td colspan="2">${esc(Object.entries(r.capturas).map(([k, v]) => `${k.replace("_", " ")}: ${v}`).join(" · ") || "ninguna")}</td></tr>
+        <tr><td>Catálogo de inmobiliarias</td><td colspan="2">${num(r.inmobiliarias.permitidas)} permitidas · ${num(r.inmobiliarias.descartadas)} descartadas con su motivo</td></tr>
+      </tbody></table></div></section>`;
+}
+function formUsuario(u) {
+  const ed = !!u, sup = (u?.supervisa && u.supervisa !== "todos") ? u.supervisa.join(", ") : "todos";
+  return `<div class="panel alt"><h4><span>${ed ? `Cambiar a ${esc(u.usuario)}` : "Usuario nuevo"}</span><span>${ed ? "" : `la clave inicial es igual al usuario, salvo que escribas otra`}</span></h4>
+    <div class="adm-form" id="admFormUsuario" data-usuario="${esc(u?.usuario || "")}">
+      <label>Usuario <input class="claro" id="auUsuario" autocomplete="off" maxlength="${esc(CFG.administracion.usuario_max)}" value="${esc(u?.usuario || "")}" ${ed ? "disabled" : ""} placeholder="p. ej. comercial11"></label>
+      <label class="ancho">Nombre <input class="claro" id="auNombre" autocomplete="off" maxlength="${esc(CFG.administracion.nombre_max)}" value="${esc(u?.nombre || "")}" placeholder="Nombre y apellidos"></label>
+      <label>Rol <select class="claro" id="auRol">${Object.keys(CFG.roles).map((r) => `<option value="${esc(r)}" ${(u?.rol || "comercial") === r ? "selected" : ""}>${esc(ROL(r))}</option>`).join("")}</select></label>
+      <label class="ancho" id="auSupCaja">A quién supervisa <input class="claro" id="auSupervisa" autocomplete="off" value="${esc(sup)}" placeholder="todos, o usuarios separados por coma"></label>
+      ${ed ? `<label class="marca"><input type="checkbox" id="auActivo" ${u.activo ? "checked" : ""}> Puede entrar a la aplicación</label>`
+           : `<label class="ancho">Clave <input class="claro" id="auClave" type="password" autocomplete="new-password" placeholder="Opcional · mínimo ${esc(CFG.clave_minima)} caracteres"></label>`}
+      <div class="acciones"><button class="btn btn-ink" data-adm="usuario-guardar" type="button"><span>${ed ? "Guardar cambios" : "Crear usuario"}</span></button>
+        ${ed ? `<button class="btn btn-line" data-adm="usuario-cancelar" type="button"><span>Cancelar</span></button>` : ""}</div>
+    </div></div>`;
+}
+async function admUsuarios() {
+  ADM.usuarios = (await api("/api/admin/usuarios")).usuarios;
+  const editando = ADM.usuarios.find((u) => u.usuario === ADM.usuario) || null;
+  const fila = (u) => `<tr class="${u.activo ? "" : "apagado"}" data-usuario="${esc(u.usuario)}"><td class="nw"><b>${esc(u.usuario)}</b></td><td>${esc(u.nombre)}</td><td class="nw">${esc(ROL(u.rol))}${u.rol === "supervisor" ? `<br><small style="color:var(--muted)">${esc(u.supervisa === "todos" ? "a todos" : (u.supervisa || []).join(", "))}</small>` : ""}</td>
+      <td class="nw"><span class="src ${u.eliminado ? "error" : u.activo ? "ok" : "omitida"}">${u.eliminado ? "eliminado" : u.activo ? "activo" : "inactivo"}</span>${u.activo && u.clave_inicial ? ` <span class="src parcial">clave inicial</span>` : ""}</td>
+      <td class="r">${u.cotizaciones ? num(u.cotizaciones) : "·"}</td><td class="nw">${esc(u.ultima_entrada ? fechaHora(u.ultima_entrada) : "nunca")}</td>
+      <td class="acc"><div class="fila-accion">${u.eliminado ? `<button class="btn btn-line" data-adm="usuario-reactivar" type="button"><span>Reactivar</span></button>`
+        : `<button class="btn btn-line" data-adm="usuario-editar" type="button"><span>Cambiar</span></button><button class="btn btn-line" data-adm="usuario-clave" type="button"><span>Clave</span></button>${u.usuario === sesionActual.usuario ? "" : `<button class="btn btn-line" data-adm="usuario-eliminar" type="button"><span>Eliminar</span></button>`}`}</div></td></tr>`;
+  $("#vista").innerHTML = cabSup("Administración · usuarios", "Usuarios", "de la aplicación", "Un usuario eliminado deja de entrar, pero sus cotizaciones, clientes y fichas se conservan. Los cambios que hagas aquí mandan sobre config/usuarios.yaml.") +
+    `<section class="sec" style="padding-top:26px">${formUsuario(editando)}</section>
+    <section class="sec" style="padding-top:22px"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th class="r">Cotizaciones</th><th>Última entrada</th><th></th></tr></thead>
+    <tbody>${ADM.usuarios.map(fila).join("")}</tbody></table></div></div></section>`;
+  verSupervisa(); $("#auRol").addEventListener("change", verSupervisa);
+}
+function verSupervisa() { const c = $("#auSupCaja"); if (c) c.hidden = $("#auRol").value !== "supervisor"; }
+function formSitio(x) {
+  const ed = !!x, a = CFG.administracion, rev = x?.revision_terminos && x.revision_terminos !== "pendiente" ? x.revision_terminos : "";
+  return `<div class="panel alt"><h4><span>${ed ? `Cambiar ${esc(x.nombre)}` : "Inmobiliaria nueva"}</span><span>${ed ? esc(x.id) : "queda como «sin probar» hasta que corra la prueba de lectura"}</span></h4>
+    <div class="adm-form" id="admFormSitio" data-sitio="${esc(x?.id || "")}">
+      <label class="ancho">Nombre <input class="claro" id="asNombre" autocomplete="off" maxlength="${esc(a.nombre_max)}" value="${esc(x?.nombre || "")}"></label>
+      <label>Dominio <input class="claro" id="asDominio" autocomplete="off" value="${esc(x?.dominio || "")}" placeholder="inmobiliaria.com.co"></label>
+      <label>Tipo <select class="claro" id="asTipo">${a.tipos_sitio.map((t) => `<option ${(x?.tipo || "inmobiliaria") === t ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></label>
+      <label class="todo">Dirección de búsqueda (la página donde el sitio lista sus inmuebles en venta) <input class="claro" id="asBusqueda" autocomplete="off" value="${esc(x?.busqueda || "")}" placeholder="https://www.inmobiliaria.com.co/venta/apartamentos"></label>
+      <label>Cómo se busca en el sitio <select class="claro" id="asNivel">${a.niveles_sitio.map((n) => `<option value="${esc(n)}" ${(x?.nivel || a.niveles_sitio[0]) === n ? "selected" : ""}>${esc(NIVEL_SITIO[n] || n)}</option>`).join("")}</select></label>
+      <label>Términos de uso revisados el <input class="claro" id="asRevision" type="date" value="${esc(rev)}"></label>
+      <label class="marca"><input type="checkbox" id="asPermitida" ${x?.permitida === false ? "" : "checked"}> Se puede consultar</label>
+      <label class="marca"><input type="checkbox" id="asDefecto" ${x?.por_defecto === false ? "" : "checked"}> Sale encendida</label>
+      <label class="todo">Nota (obligatoria si no se puede consultar) <input class="claro" id="asNota" autocomplete="off" maxlength="${esc(a.nota_max)}" value="${esc(x?.nota || "")}"></label>
+      <div class="acciones"><button class="btn btn-ink" data-adm="sitio-guardar" type="button"><span>${ed ? "Guardar cambios" : "Agregar inmobiliaria"}</span></button>
+        ${ed ? `<button class="btn btn-line" data-adm="sitio-cancelar" type="button"><span>Cancelar</span></button>` : ""}</div>
+    </div></div>`;
+}
+function filasSitios() {
+  const q = sinTildes(ADM.filtro.trim().toLowerCase());
+  const lista = ADM.sitios.filter((x) => !q || sinTildes(x.nombre + " " + x.dominio).includes(q));
+  return lista.map((x) => `<tr class="${x.permitida && x.por_defecto ? "" : "apagado"}" data-sitio="${esc(x.id)}"><td><b>${esc(x.nombre)}</b><br><small style="color:var(--muted)">${esc(x.dominio)} · ${esc(x.tipo)}</small></td>
+      <td class="nw"><span class="src ${x.lectura === "ok" ? "ok" : x.lectura === "sin_resultados" ? "parcial" : "omitida"}">${esc(LECTURA[x.lectura] || x.lectura || "sin probar")}</span></td>
+      <td class="nw">${x.permitida ? (x.por_defecto ? `<span class="src ok">encendida</span>` : `<span class="src omitida">apagada</span>`) : `<span class="src error">no se consulta</span>`}</td>
+      <td class="nw">${esc(x.revision_terminos && x.revision_terminos !== "pendiente" ? `revisados el ${fechaCorta(x.revision_terminos)}` : "por revisar")}</td><td class="largo"><small>${esc(x.nota || "")}</small></td>
+      <td class="acc"><div class="fila-accion">${x.permitida ? `<button class="btn btn-line" data-adm="sitio-alternar" type="button"><span>${x.por_defecto ? "Apagar" : "Encender"}</span></button>` : ""}<button class="btn btn-line" data-adm="sitio-editar" type="button"><span>Cambiar</span></button><button class="btn btn-line" data-adm="sitio-eliminar" type="button"><span>Eliminar</span></button></div></td></tr>`).join("")
+    || `<tr><td colspan="6" style="color:var(--muted)">Ningún sitio coincide con el filtro.</td></tr>`;
+}
+async function admInmobiliarias() {
+  const r = await api("/api/admin/inmobiliarias"); ADM.sitios = r.sitios; ADM.descartadas = r.descartadas;
+  const editando = ADM.sitios.find((x) => x.id === ADM.sitio) || null, enc = ADM.sitios.filter((x) => x.permitida && x.por_defecto).length;
+  $("#vista").innerHTML = cabSup("Administración · inmobiliarias", "Inmobiliarias", "que lee la búsqueda", "Los comerciales ven esta lista al cotizar. Un sitio eliminado no se borra: pasa a descartados con su motivo. Antes de permitir un sitio revisa sus términos de uso.") +
+    `<section class="sec" style="padding-top:26px">${formSitio(editando)}</section>
+    <div class="filtros"><input class="claro" id="admFiltroSitios" placeholder="Filtrar por nombre o dominio" value="${esc(ADM.filtro)}" style="min-width:260px"><span class="sep"></span><span class="tag">${plural(ADM.sitios.length, "sitio", "sitios")}</span><span class="tag sage">${num(enc)} encendidos</span><span class="tag">${num(ADM.descartadas.length)} descartados</span></div>
+    <section class="sec" style="padding-top:18px"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Sitio</th><th>Lectura</th><th>Al cotizar</th><th>Términos de uso</th><th>Nota</th><th></th></tr></thead><tbody id="admSitios">${filasSitios()}</tbody></table></div></div></section>
+    <section class="sec" style="padding-top:22px"><div class="panel"><details><summary style="cursor:pointer;font-weight:600">Descartados · ${num(ADM.descartadas.length)} (no se consultan)</summary><table class="t" style="margin-top:10px"><tbody>${ADM.descartadas.map((d) => `<tr><td class="nw"><b>${esc(d.nombre)}</b><br><small style="color:var(--muted)">${esc(d.dominio)}</small></td><td>${esc(d.motivo)}</td></tr>`).join("")}</tbody></table></details></div></section>`;
+  $("#admFiltroSitios").addEventListener("input", (e) => { ADM.filtro = e.target.value; $("#admSitios").innerHTML = filasSitios(); });
+}
+async function admRespaldos() {
+  const r = await api("/api/admin/respaldos");
+  $("#vista").innerHTML = cabSup("Administración · respaldos", "Respaldos", "de la información", "Cada respaldo es un .zip con la base (clientes, cotizaciones, capturas), la configuración y las fichas. Las llaves del archivo .env no se copian. El almacén tampoco: se rehace con el ETL.") +
+    `<div class="filtros"><button class="btn btn-ink" data-adm="respaldo-crear" type="button"><span>Crear respaldo ahora</span></button><span class="sep"></span><span class="tag">${plural(r.respaldos.length, "respaldo", "respaldos")}</span></div>
+    <section class="sec" style="padding-top:18px"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Archivo</th><th>Creado</th><th class="r">Tamaño</th><th></th></tr></thead>
+    <tbody>${r.respaldos.map((x) => `<tr data-respaldo="${esc(x.nombre)}"><td class="nw"><code>${esc(x.nombre)}</code></td><td class="nw">${esc(fechaHora(x.creado_en))}</td><td class="r nw">${esc(tamano(x.bytes))}</td><td class="acc"><div class="fila-accion"><button class="btn btn-line" data-adm="respaldo-eliminar" type="button"><span>Eliminar</span></button></div></td></tr>`).join("") || `<tr><td colspan="4" style="color:var(--muted)">Todavía no hay respaldos. Crea el primero.</td></tr>`}</tbody></table></div>
+    <p class="ruta">Carpeta: ${esc(r.carpeta)}</p></div></section>
+    <section class="sec" style="padding-top:22px"><div class="panel alt"><h4><span>Para recuperar un respaldo</span></h4><p style="font-size:13.5px;line-height:1.6">Cierra la aplicación, abre el .zip y copia <code>data/captura.db</code>, la carpeta <code>config</code> y <code>fichas_clientes</code> sobre las de la aplicación. Al abrirla de nuevo, corre <code>iniciar.bat etl</code> para rehacer el almacén. Guarda una copia de los respaldos fuera de este equipo: contienen datos de clientes.</p></div></section>`;
+}
+async function admBitacora() {
+  const r = await api("/api/admin/bitacora");
+  const llano = (v) => v == null ? "—" : typeof v !== "object" ? String(v) : Array.isArray(v) ? v.join(", ") : Object.entries(v).filter(([, x]) => x != null && typeof x !== "object").map(([k, x]) => `${k.replace(/_/g, " ")} ${x}`).join(", ");
+  const detalle = (d) => !d ? "" : Object.entries(d).map(([k, v]) => k === "bytes" ? `tamaño: ${tamano(v)}` : `${k.replace(/_/g, " ")}: ${v && typeof v === "object" && "antes" in v && "despues" in v ? `${llano(v.antes)} → ${llano(v.despues)}` : llano(v)}`).join(" · ");
+  $("#vista").innerHTML = cabSup("Administración · bitácora", "Bitácora", "de cambios", "Cada cambio de usuarios, inmobiliarias y respaldos, con quién lo hizo. Nunca se guarda una clave.") +
+    `<section class="sec" style="padding-top:26px"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Fecha</th><th>Administrador</th><th>Qué hizo</th><th>Sobre</th><th>Detalle</th></tr></thead>
+    <tbody>${r.eventos.map((e) => `<tr><td class="nw">${esc(fechaHora(e.creado_en))}</td><td class="nw">${esc(e.administrador)}</td><td class="nw">${esc(ACCION_ADM[e.accion] || e.accion)}</td><td class="nw"><code>${esc(e.objeto || "")}</code></td><td class="largo"><small>${esc(detalle(e.detalle)).slice(0, 600)}</small></td></tr>`).join("") || `<tr><td colspan="5" style="color:var(--muted)">Todavía no hay cambios registrados.</td></tr>`}</tbody></table></div></div></section>`;
+}
+function confirmarEn(el, html) { el.closest("td").innerHTML = `<div class="confirma">${html}<button class="btn btn-line" data-adm="cancelar" type="button"><span>No</span></button></div>`; }
+async function accionAdmin(act, el) {
+  const usuario = el.closest("[data-usuario]")?.dataset.usuario, sitio = el.closest("[data-sitio]")?.dataset.sitio, respaldo = el.closest("[data-respaldo]")?.dataset.respaldo;
+  if (act === "cancelar") return void irAdm(ADM.vista);
+  if (act === "usuario-editar") { ADM.usuario = usuario; await irAdm("usuarios"); return void $("#auNombre").focus(); }
+  if (act === "usuario-cancelar") { ADM.usuario = null; return void irAdm("usuarios"); }
+  if (act === "sitio-editar") { ADM.sitio = sitio; await irAdm("inmobiliarias"); return void $("#asNombre").focus(); }
+  if (act === "sitio-cancelar") { ADM.sitio = null; return void irAdm("inmobiliarias"); }
+  if (act === "usuario-eliminar") return void confirmarEn(el, `<span>¿Eliminar a <b>${esc(usuario)}</b>? Deja de entrar; su historial se conserva.</span><button class="btn btn-ink" data-adm="usuario-eliminar-ok" type="button"><span>Sí, eliminar</span></button>`);
+  if (act === "usuario-clave") return void confirmarEn(el, `<input class="claro" type="password" autocomplete="new-password" data-clave placeholder="Clave nueva · vacío = la inicial"><button class="btn btn-ink" data-adm="usuario-clave-ok" type="button"><span>Guardar clave</span></button>`);
+  if (act === "sitio-eliminar") return void confirmarEn(el, `<input class="claro" data-motivo maxlength="${esc(CFG.administracion.nota_max)}" placeholder="Por qué se elimina (queda en el catálogo)"><button class="btn btn-ink" data-adm="sitio-eliminar-ok" type="button"><span>Eliminar</span></button>`);
+  if (act === "respaldo-eliminar") return void confirmarEn(el, `<span>¿Eliminar este respaldo? No se puede deshacer.</span><button class="btn btn-ink" data-adm="respaldo-eliminar-ok" type="button"><span>Sí, eliminar</span></button>`);
+  el.disabled = true;
+  try {
+    if (act === "usuario-guardar") {
+      const f = $("#admFormUsuario"), editado = f.dataset.usuario, rol = $("#auRol").value, sup = $("#auSupervisa").value.trim();
+      const cuerpo = {nombre: $("#auNombre").value, rol};
+      if (rol === "supervisor") cuerpo.supervisa = (!sup || sup.toLowerCase() === "todos") ? "todos" : sup.split(",").map((x) => x.trim()).filter(Boolean);
+      if (editado) { cuerpo.activo = $("#auActivo").checked; await api(`/api/admin/usuarios/${encodeURIComponent(editado)}`, cuerpo); toast(`Cambios guardados en ${editado}`); }
+      else { cuerpo.usuario = $("#auUsuario").value; cuerpo.clave = $("#auClave").value; const r = await api("/api/admin/usuarios", cuerpo); toast(`Usuario ${r.usuario.usuario} creado${cuerpo.clave ? "" : ": su clave inicial es igual al usuario"}`); }
+      ADM.usuario = null;
+    } else if (act === "usuario-eliminar-ok") { await api(`/api/admin/usuarios/${encodeURIComponent(usuario)}/eliminar`, {}); toast(`${usuario} quedó eliminado; su historial se conserva`); }
+    else if (act === "usuario-reactivar") { await api(`/api/admin/usuarios/${encodeURIComponent(usuario)}`, {activo: true}); toast(`${usuario} puede entrar de nuevo`); }
+    else if (act === "usuario-clave-ok") { const clave = el.closest("td").querySelector("[data-clave]").value; await api(`/api/admin/usuarios/${encodeURIComponent(usuario)}/clave`, {clave}); toast(clave ? `Clave de ${usuario} cambiada` : `${usuario} volvió a su clave inicial`); }
+    else if (act === "sitio-guardar") {
+      const editado = $("#admFormSitio").dataset.sitio;
+      const cuerpo = {nombre: $("#asNombre").value, dominio: $("#asDominio").value, tipo: $("#asTipo").value, nivel: $("#asNivel").value, busqueda: $("#asBusqueda").value,
+                      permitida: $("#asPermitida").checked, por_defecto: $("#asDefecto").checked, revision_terminos: $("#asRevision").value || "pendiente", nota: $("#asNota").value};
+      const r = await api(editado ? `/api/admin/inmobiliarias/${encodeURIComponent(editado)}` : "/api/admin/inmobiliarias", cuerpo);
+      toast(editado ? `Cambios guardados en ${r.sitio.nombre}` : `${r.sitio.nombre} agregada al catálogo`); ADM.sitio = null;
+    } else if (act === "sitio-alternar") { const sit = ADM.sitios.find((s) => s.id === sitio); await api(`/api/admin/inmobiliarias/${encodeURIComponent(sitio)}`, {por_defecto: !sit.por_defecto}); toast(`${sit.nombre}: ${sit.por_defecto ? "apagada" : "encendida"} al cotizar`); }
+    else if (act === "sitio-eliminar-ok") { await api(`/api/admin/inmobiliarias/${encodeURIComponent(sitio)}/eliminar`, {motivo: el.closest("td").querySelector("[data-motivo]").value}); toast("Sitio eliminado: quedó en descartados con su motivo"); }
+    else if (act === "respaldo-crear") { toast("Creando el respaldo…"); const r = await api("/api/admin/respaldos", {}); toast(`Respaldo listo: ${r.respaldo.nombre} (${tamano(r.respaldo.bytes)})`); }
+    else if (act === "respaldo-eliminar-ok") { await api(`/api/admin/respaldos/${encodeURIComponent(respaldo)}/eliminar`, {}); toast("Respaldo eliminado"); }
+    await irAdm(ADM.vista);
+  } catch (e) { toast(e.message, true); el.disabled = false; }
+}
+
+/* ======================= SUPERVISIÓN ======================= */
+const SUP = {vista: "tablero", desde: null, hasta: null, comercial: "", mes: null, comerciales: [], cots: []};
+const VISTAS = [["tablero", "Tablero comercial", "Cotizaciones, clientes y metas"], ["cotizaciones", "Cotizaciones", "Todas, con su ficha"],
+                ["clientes", "Clientes", "Registrados y cotizados"], ["metas", "Metas", "Por comercial y mes"],
+                ["seguimiento", "Seguimiento", "Notas y compromisos"], ["almacen", "Calidad de datos", "ETL y esquema estrella"]];
+const opComerciales = (sel, todos = true) => (todos ? `<option value="">Todos los comerciales</option>` : "") + SUP.comerciales.map((c) => `<option value="${esc(c.usuario)}" ${c.usuario === sel ? "selected" : ""}>${esc(c.nombre)}</option>`).join("");
+const cabSup = (ojo, titulo, em, lead) => `<header class="hero"><div class="eyebrow">${esc(ojo)}</div><h1>${esc(titulo)} <em>${esc(em)}</em></h1>${lead ? `<p class="sec-lead" style="margin-top:12px">${lead}</p>` : ""}</header>`;
+async function arrancarSupervisor() {
+  $("#navSup").innerHTML = VISTAS.map(([id, t, s]) => `<button data-vista="${id}" type="button"><span>${esc(t)}</span><small>${esc(s)}</small></button>`).join("");
+  $("#ticker").innerHTML = `<span>Real estate · <b>Medellín</b></span><i>◆</i><span>Supervisión comercial · <b>${esc(sesionActual.nombre)}</b></span><i>◆</i><span>Los datos del tablero salen del almacén en esquema estrella</span><i>◆</i>`.repeat(4);
+  try { SUP.comerciales = (await api("/api/supervision/comerciales")).comerciales; } catch (e) { toast(e.message, true); }
+  SUP.hasta = hoyISO(); SUP.desde = masDias(SUP.hasta, -(CFG.supervision.dias_tablero_por_defecto - 1)); SUP.mes = SUP.hasta.slice(0, 7);
+  irA("tablero");
+}
+async function irA(vista) {
+  SUP.vista = vista;
+  document.querySelectorAll("#navSup button").forEach((b) => b.classList.toggle("on", b.dataset.vista === vista));
+  $("#vista").innerHTML = `<div class="vacio"><p>Cargando…</p></div>`; $("#stage").scrollTo({top: 0});
+  try { await ({tablero: vistaTablero, cotizaciones: vistaCotizaciones, clientes: vistaClientes, metas: vistaMetas, seguimiento: vistaSeguimiento, almacen: vistaAlmacen})[vista](); }
+  catch (e) { $("#vista").innerHTML = `<div class="vacio"><h1>No se pudo <em>cargar</em></h1><p>${esc(e.message)}</p></div>`; }
+}
+const filtrosPeriodo = () => `<div class="filtros">
+    <div class="pildoras">${[[7, "7 días"], [30, "30 días"], [90, "90 días"]].map(([n, t]) => `<button type="button" data-dias="${n}" class="${masDias(SUP.hasta, -(n - 1)) === SUP.desde && SUP.hasta === hoyISO() ? "on" : ""}">${t}</button>`).join("")}</div>
+    <label>Desde <input class="claro" type="date" id="fDesde" value="${esc(SUP.desde)}"></label>
+    <label>Hasta <input class="claro" type="date" id="fHasta" value="${esc(SUP.hasta)}"></label>
+    <select class="claro" id="fComercial" aria-label="Comercial">${opComerciales(SUP.comercial)}</select>
+    <button class="btn btn-ink" data-act="aplicar-filtros" type="button"><span>Aplicar</span></button></div>`;
+function delta(k, sufijo = "frente al periodo anterior") {
+  if (k.variacion == null) return `<div class="delta">${k.anterior ? "" : "sin dato del periodo anterior"}</div>`;
+  return `<div class="delta ${k.variacion > 0 ? "sube" : k.variacion < 0 ? "baja" : ""}">${k.variacion > 0 ? "▲ +" : k.variacion < 0 ? "▼ " : "= "}${pct(k.variacion)} ${esc(sufijo)}</div>`;
+}
+async function vistaTablero() {
+  const t = await api(`/api/tablero?desde=${SUP.desde}&hasta=${SUP.hasta}${SUP.comercial ? `&comercial=${encodeURIComponent(SUP.comercial)}` : ""}`), k = t.kpis;
+  const mesTxt = new Date(k.meta_mes.mes + "-15").toLocaleDateString("es-CO", {month: "long", year: "numeric"});
+  const conf = Object.fromEntries(t.por_confianza.map((x) => [x.etiqueta, x.n]));
+  let h = cabSup(`Tablero comercial · ${fechaCorta(t.periodo.desde)} a ${fechaCorta(t.periodo.hasta)} · ${num(t.periodo.dias)} días`, "Lo que está haciendo", "el equipo comercial",
+    "Cotizaciones realizadas, clientes registrados y cotizados, fichas y avance de metas. Cuenta lo que terminó bien; una cotización fallida queda registrada, pero no suma.") + filtrosPeriodo();
+  h += `<div class="kpis seis" style="margin-top:22px">
+    <div class="kpi"><label>Cotizaciones</label><div class="v">${num(k.cotizaciones.valor)}</div>${delta(k.cotizaciones)}</div>
+    <div class="kpi"><label>Clientes cotizados</label><div class="v">${num(k.clientes_cotizados.valor)}</div>${delta(k.clientes_cotizados)}</div>
+    <div class="kpi"><label>Clientes nuevos</label><div class="v">${num(k.clientes_nuevos.valor)}</div><div class="s">${plural(k.clientes_nuevos.registrados_total, "registrado", "registrados")} en total</div></div>
+    <div class="kpi"><label>Fichas generadas</label><div class="v">${num(k.fichas.valor)}</div><div class="s">de ${plural(k.fichas.de, "cotización", "cotizaciones")}</div></div>
+    <div class="kpi"><label>Meta de ${esc(mesTxt)}</label><div class="v">${k.meta_mes.meta ? pct(k.meta_mes.avance) : "—"}</div><div class="s">${k.meta_mes.meta ? `${num(k.meta_mes.hechas)} de ${num(k.meta_mes.meta)}` : "sin metas fijadas"}</div></div>
+    <div class="kpi"><label>Comerciales activos</label><div class="v">${num(k.comerciales_activos.valor)}</div><div class="s">de ${num(k.comerciales_activos.de)} a cargo${k.fallidas.valor ? ` · ${num(k.fallidas.valor)} cotizaciones fallidas` : ""}</div></div></div>`;
+  h += `<section class="sec" style="padding-top:34px"><div class="g-7-5">
+      <div class="panel"><h4><span>Cotizaciones por día</span><span>${num(k.cotizaciones.valor)} en el periodo</span></h4>${lineaTiempo(t.serie_diaria, "dia")}
+        ${tablaDatos(["Fecha", "Cotizaciones", "Clientes"], t.serie_diaria.filter((d) => d.cotizaciones).map((d) => [d.fecha, num(d.cotizaciones), num(d.clientes)]))}</div>
+      <div class="panel"><h4><span>Avance de la meta · ${esc(mesTxt)}</span><span>cotizaciones del mes / meta</span></h4>
+        ${medidores(t.por_comercial.map((c) => ({nombre: c.nombre, hechas: c.cotizaciones_mes, meta: c.meta_cotizaciones})))}</div></div>
+    <div class="g2 mt">
+      <div class="panel"><h4><span>Cotizaciones por comercial</span><span>en el periodo</span></h4>${barras(t.por_comercial.filter((c) => c.cotizaciones).sort((a, b) => b.cotizaciones - a.cotizaciones).map((c) => ({etiqueta: c.nombre, n: c.cotizaciones})), " cotizaciones", "Nadie cotizó en este periodo")}</div>
+      <div class="panel"><h4><span>Barrios más cotizados</span><span>en el periodo</span></h4>${barras(t.por_barrio, " cotizaciones")}</div></div>
+    <div class="g2 mt">
+      <div class="panel"><h4><span>Confianza de las fichas</span><span>calidad de los datos, no del inmueble</span></h4>
+        ${segmentada([{etiqueta: "Alta", n: conf.alta || 0, color: VIZ.alta}, {etiqueta: "Media", n: conf.media || 0, color: VIZ.media}, {etiqueta: "Baja", n: conf.baja || 0, color: VIZ.baja, clara: true}, {etiqueta: "Sin ficha", n: conf.sin_ficha || 0, color: VIZ.gris, clara: true}], "Confianza de las fichas")}
+        <p class="sec-lead" style="margin-top:14px;font-size:12px">La confianza mide cuántos comparables hay y qué tan dispersos están sus precios. No mide la conveniencia de comprar.</p></div>
+      <div class="panel"><h4><span>Tipo de inmueble cotizado</span><span>en el periodo</span></h4>${barras(t.por_tipo_inmueble.map((x) => ({etiqueta: TIPO_INM(x.etiqueta === "sin_especificar" ? "" : x.etiqueta), n: x.n})), " cotizaciones")}</div></div></section>`;
+  const dm = t.demanda, tiposDm = dm.por_tipo.filter((x) => x.solicitudes), porCom = {};
+  dm.por_comercial.forEach((x) => { (porCom[x.usuario] = porCom[x.usuario] || {nombre: x.nombre, tipos: {}}).tipos[x.tipo] = x.solicitudes; });
+  h += `<section class="sec" style="padding-top:34px">${cab("01", "Lo que piden", "los clientes", "Tipos de inmueble que cada cliente dijo buscar al cotizar. Un cliente puede pedir varios; por eso las solicitudes pueden sumar más que las cotizaciones.")}
+    <div class="g2"><div class="panel"><h4><span>Solicitudes por tipo de inmueble</span><span>${plural(dm.cotizaciones_con_busqueda, "cotización", "cotizaciones")} con búsqueda</span></h4>
+        ${barras(tiposDm.map((x) => ({etiqueta: TIPO_INM(x.tipo), n: x.solicitudes})), " cotizaciones", "Ninguna cotización del periodo registra qué busca el cliente")}
+        ${dm.sin_solicitudes.length ? `<p class="sec-lead" style="margin-top:14px;font-size:12px">Sin solicitudes en el periodo: ${esc(dm.sin_solicitudes.map(TIPO_INM).join(", ").toLowerCase())}.</p>` : ""}
+        ${dm.cotizaciones_sin_busqueda ? `<p class="sec-lead" style="margin-top:6px;font-size:12px">${plural(dm.cotizaciones_sin_busqueda, "cotización anterior no registra", "cotizaciones anteriores no registran")} qué buscaba el cliente.</p>` : ""}</div>
+      <div class="panel" style="padding:10px 10px 4px"><h4 style="padding:14px 14px 0"><span>Lo pidieron y no lo pidieron</span><span>cotizaciones del periodo</span></h4><div style="overflow:auto"><table class="t"><thead><tr><th>Tipo</th><th class="r">Lo pidieron</th><th class="r">No lo pidieron</th><th class="r">Se cotizó</th><th class="r">Clientes</th><th class="r">Ofertas a la vista</th></tr></thead>
+        <tbody>${dm.por_tipo.map((x) => `<tr><td class="nw">${esc(TIPO_INM(x.tipo))}</td><td class="r">${num(x.solicitudes)}</td><td class="r">${num(x.no_lo_pidieron)}</td><td class="r">${num(x.cotizado)}</td><td class="r">${num(x.clientes)}</td><td class="r">${x.ofertas_media == null ? "—" : num(x.ofertas_media, 1)}</td></tr>`).join("")}</tbody></table></div></div></div>
+    ${tiposDm.length ? `<div class="panel mt" style="padding:10px 10px 4px"><h4 style="padding:14px 14px 0"><span>Qué pidieron los clientes de cada comercial</span><span>solicitudes por tipo</span></h4><div style="overflow:auto"><table class="t"><thead><tr><th>Comercial</th>${tiposDm.map((x) => `<th class="r">${esc(TIPO_INM(x.tipo))}</th>`).join("")}</tr></thead>
+        <tbody>${Object.values(porCom).map((c) => `<tr><td class="nw">${esc(c.nombre)}</td>${tiposDm.map((x) => `<td class="r">${c.tipos[x.tipo] ? num(c.tipos[x.tipo]) : "·"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>` : ""}</section>`;
+  h += `<section class="sec" style="padding-top:34px"><div class="panel" style="padding:10px 10px 4px"><h4 style="padding:14px 14px 0"><span>Detalle por comercial</span><span>${esc(mesTxt)} para la meta</span></h4>
+    <div style="overflow:auto"><table class="t"><thead><tr><th>Comercial</th><th class="r">Cotizaciones</th><th class="r">Clientes</th><th class="r">Fichas</th><th class="r">Fallidas</th><th class="r">Del mes</th><th class="r">Meta</th><th class="r">Avance</th><th>Última cotización</th></tr></thead>
+    <tbody>${t.por_comercial.map((c) => `<tr><td class="nw">${esc(c.nombre)}</td><td class="r">${num(c.cotizaciones)}</td><td class="r">${num(c.clientes)}</td><td class="r">${num(c.fichas)}</td><td class="r">${c.fallidas ? num(c.fallidas) : "·"}</td><td class="r">${num(c.cotizaciones_mes)}</td><td class="r">${c.meta_cotizaciones == null ? "—" : num(c.meta_cotizaciones)}</td><td class="r">${pct(c.avance)}</td><td class="nw">${esc(c.ultima ? fechaHora(c.ultima) : "—")}</td></tr>`).join("")}</tbody></table></div></div></section>`;
+  h += `<div class="disclaimer"><p>El tablero describe la actividad comercial. No evalúa inmuebles ni aconseja inversiones.</p><small>Fuente: almacén en esquema estrella (fact_cotizacion, fact_ficha, fact_meta)${t.almacen ? ` · última carga: corrida ${num(t.almacen.corrida_id)} (${esc(t.almacen.estado.replace("_", " "))}) · ${esc(fechaHora(t.almacen.fin))}` : ""}</small></div>`;
+  $("#vista").innerHTML = h;
+}
+async function vistaCotizaciones() {
+  const r = await api(`/api/cotizaciones?${SUP.comercial ? `comercial=${encodeURIComponent(SUP.comercial)}` : ""}`);
+  SUP.cots = r.cotizaciones;
+  const EST = {ok: "ok", parcial: "parcial", error: "error", en_curso: "omitida"};
+  $("#vista").innerHTML = cabSup("Supervisión · cotizaciones", "Cotizaciones", "de los comerciales a cargo", "Haz clic en una fila para abrir la ficha del inmueble que recibió el cliente.") +
+    `<div class="filtros"><select class="claro" id="fComercial" aria-label="Comercial">${opComerciales(SUP.comercial)}</select><button class="btn btn-ink" data-act="aplicar-filtros" type="button"><span>Aplicar</span></button><span class="sep"></span><span class="tag">${plural(r.total, "cotización", "cotizaciones")}</span></div>
+    <section class="sec" style="padding-top:26px"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Fecha</th><th>Comercial</th><th>Cliente</th><th>Inmueble</th><th>Estado</th><th>Ficha</th><th>Con el cliente</th><th class="r">Comparables</th><th class="r">Mediana / m²</th></tr></thead>
+    <tbody>${r.cotizaciones.map((c) => `<tr class="clic" data-cot-sup="${esc(c.cotizacion_id)}"><td class="nw">${esc(fechaHora(c.creada_en))}</td><td class="nw">${esc(c.comercial_nombre)}</td><td>${esc(c.cliente_nombre)}<br><small style="color:var(--muted)">${esc(DOC(c))}</small></td>
+      <td>${esc(c.direccion || "sin dirección")}<br><small style="color:var(--muted)">${esc([c.barrio, c.inmueble.tipo ? TIPO_INM(c.inmueble.tipo) : "", c.inmueble.area_m2 ? `${num(c.inmueble.area_m2, 1)} m²` : ""].filter(Boolean).join(" · "))}</small></td>
+      <td><span class="src ${esc(EST[c.estado] || "")}">${esc(c.estado.replace("_", " "))}</span></td><td>${c.ficha ? `<span class="src ${c.ficha.estado === "ok" ? "ok" : "parcial"}">${esc(c.ficha.estado === "ok" ? `confianza ${c.ficha.confianza}` : (ESTADO_FICHA[c.ficha.estado] || c.ficha.estado))}</span>` : `<span class="src omitida">sin ficha</span>`}</td>
+      <td>${c.estado_cliente ? `<span class="src ${c.estado_cliente.estado === "rechazada" ? "error" : c.estado_cliente.sin_registrar ? "parcial" : "ok"}">${esc(c.estado_cliente.etiqueta)}</span>${c.estado_cliente.motivo_etiqueta ? `<br><small style="color:var(--muted)">${esc(c.estado_cliente.motivo_etiqueta)}</small>` : ""}` : "·"}</td>
+      <td class="r">${c.ficha?.n ? num(c.ficha.n) : "·"}</td><td class="r">${c.ficha?.mediana ? esc(cop(c.ficha.mediana)) : "·"}</td></tr>`).join("") || `<tr><td colspan="9" style="color:var(--muted)">Todavía no hay cotizaciones.</td></tr>`}</tbody></table></div></div></section>
+    <section class="sec" id="secFichaSup" style="padding-top:34px"></section>`;
+}
+async function vistaClientes() {
+  const r = await api("/api/supervision/clientes");
+  const nombre = (u) => SUP.comerciales.find((c) => c.usuario === u)?.nombre || u;
+  $("#vista").innerHTML = cabSup("Supervisión · clientes", "Clientes", "registrados y cotizados", "El número del documento se muestra enmascarado. La autorización de datos queda con su fecha y el comercial que la tomó.") +
+    `<div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-top:20px"><div class="kpi"><label>Registrados</label><div class="v">${num(r.clientes.length)}</div></div>
+      <div class="kpi"><label>Con cotización</label><div class="v">${num(r.clientes.filter((c) => c.cotizaciones).length)}</div></div>
+      <div class="kpi"><label>Con más de una</label><div class="v">${num(r.clientes.filter((c) => c.cotizaciones > 1).length)}</div></div></div>
+    <section class="sec" style="padding-top:26px"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Cliente</th><th>Documento</th><th>Registrado por</th><th>Registro</th><th class="r">Cotizaciones</th><th>Atendido por</th><th>Última cotización</th><th>Autorización</th></tr></thead>
+    <tbody>${r.clientes.map((c) => `<tr><td>${esc(c.nombre)}</td><td class="nw">${esc(c.tipo_documento)} ${esc(c.documento_mascara)}</td><td class="nw">${esc(nombre(c.registrado_por))}</td><td class="nw">${esc(fechaCorta(c.registrado_en))}</td><td class="r">${num(c.cotizaciones)}</td><td>${esc(c.comerciales.map(nombre).join(", ") || "—")}</td><td class="nw">${esc(c.ultima_cotizacion ? fechaHora(c.ultima_cotizacion) : "—")}</td><td><span class="src ${c.autoriza_datos ? "si" : "no"}">${c.autoriza_datos ? "vigente" : "sin autorización"}</span></td></tr>`).join("") || `<tr><td colspan="8" style="color:var(--muted)">Todavía no hay clientes.</td></tr>`}</tbody></table></div></div></section>`;
+}
+async function vistaMetas() {
+  const [m, t] = await Promise.all([api(`/api/metas?mes=${SUP.mes}`), api(`/api/tablero?desde=${SUP.mes}-01&hasta=${masDias(masDias(SUP.mes + "-28", 7).slice(0, 7) + "-01", -1)}`)]);
+  const metas = Object.fromEntries(m.metas.map((x) => [x.comercial, x])), hechas = Object.fromEntries(t.por_comercial.map((c) => [c.usuario, c]));
+  $("#vista").innerHTML = cabSup("Supervisión · metas", "Metas", "por comercial y mes", "La meta se compara con las cotizaciones que terminaron bien en el mes. Cada cambio queda en el historial con quién lo hizo.") +
+    `<div class="filtros"><label>Mes <input class="claro" type="month" id="fMes" value="${esc(SUP.mes)}"></label><button class="btn btn-ink" data-act="aplicar-filtros" type="button"><span>Ver mes</span></button></div>
+    <section class="sec" style="padding-top:26px"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Comercial</th><th class="r">Cotizaciones del mes</th><th class="r">Clientes del mes</th><th class="r">Meta de cotizaciones</th><th class="r">Meta de clientes</th><th class="r">Avance</th><th></th></tr></thead>
+    <tbody>${SUP.comerciales.map((c) => { const x = metas[c.usuario] || {}, h = hechas[c.usuario] || {}; return `<tr data-meta="${esc(c.usuario)}"><td class="nw">${esc(c.nombre)}</td><td class="r">${num(h.cotizaciones || 0)}</td><td class="r">${num(h.clientes || 0)}</td>
+      <td class="r"><input class="claro" inputmode="numeric" data-campo="cot" aria-label="Meta de cotizaciones de ${esc(c.nombre)}" value="${esc(x.meta_cotizaciones ?? "")}"></td><td class="r"><input class="claro" inputmode="numeric" data-campo="cli" aria-label="Meta de clientes de ${esc(c.nombre)}" value="${esc(x.meta_clientes ?? "")}"></td>
+      <td class="r">${x.meta_cotizaciones ? pct((h.cotizaciones || 0) / x.meta_cotizaciones) : "—"}</td><td><button class="btn btn-line" data-act="guardar-meta" type="button" style="padding:8px 14px"><span>Guardar</span></button></td></tr>`; }).join("")}</tbody></table></div></div></section>`;
+}
+async function vistaSeguimiento() {
+  const r = await api(`/api/seguimientos${SUP.comercial ? `?comercial=${encodeURIComponent(SUP.comercial)}` : ""}`);
+  const item = (s) => `<tr><td class="nw">${esc(fechaCorta(s.creado_en))}</td><td class="nw">${esc(s.comercial_nombre)}</td><td><span class="src">${esc(TIPO_SEG(s.tipo))}</span></td><td class="largo">${esc(s.nota)}</td><td class="nw">${esc(s.fecha_compromiso ? fechaCorta(s.fecha_compromiso) : "—")}</td><td class="nw">${esc(s.supervisor_nombre)}</td>
+    <td>${s.estado === "abierto" ? `<button class="btn btn-line" data-act="cerrar-seguimiento" data-id="${esc(s.seguimiento_id)}" type="button" style="padding:8px 14px"><span>Cerrar</span></button>` : `<span class="src si">cerrado</span>`}</td></tr>`;
+  $("#vista").innerHTML = cabSup("Supervisión · seguimiento", "Seguimiento", "a los comerciales", "Notas, compromisos, reconocimientos y alertas. El comercial ve en su panel las que tiene abiertas.") +
+    `<section class="sec" style="padding-top:26px"><div class="panel alt"><h4><span>Nuevo seguimiento</span></h4><div class="form-grid">
+      <label>Comercial <select class="claro" id="segComercial">${opComerciales(SUP.comercial, false)}</select></label>
+      <label>Tipo <select class="claro" id="segTipo">${CFG.supervision.tipos_seguimiento.map((x) => `<option value="${esc(x)}">${esc(TIPO_SEG(x))}</option>`).join("")}</select></label>
+      <label>Fecha del compromiso <input class="claro" type="date" id="segFecha"></label>
+      <button class="btn btn-ink" data-act="crear-seguimiento" type="button"><span>Registrar</span></button>
+      <label class="ancho">Nota <textarea class="claro" id="segNota" maxlength="${num(CFG.supervision.nota_max).replace(/\D/g, "")}" placeholder="Qué se acordó o qué hay que revisar"></textarea></label></div></div>
+    <div class="filtros"><select class="claro" id="fComercial" aria-label="Comercial">${opComerciales(SUP.comercial)}</select><button class="btn btn-ink" data-act="aplicar-filtros" type="button"><span>Aplicar</span></button><span class="sep"></span><span class="tag">${plural(r.seguimientos.filter((s) => s.estado === "abierto").length, "abierto", "abiertos")}</span></div>
+    <div class="panel mt" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Fecha</th><th>Comercial</th><th>Tipo</th><th>Nota</th><th>Compromiso</th><th>Supervisor</th><th></th></tr></thead>
+    <tbody>${r.seguimientos.map(item).join("") || `<tr><td colspan="7" style="color:var(--muted)">Todavía no hay seguimiento registrado.</td></tr>`}</tbody></table></div></div></section>`;
+}
+async function vistaAlmacen() {
+  const a = await api("/api/almacen");
+  if (!a.disponible) { $("#vista").innerHTML = cabSup("Calidad de datos", "Almacén", "en esquema estrella", esc(a.mensaje)); return; }
+  const u = a.ultima, res = {ok: 0, alerta: 0, falla: 0}; a.controles.forEach((c) => res[c.resultado]++);
+  const ICONO = {ok: "✓", alerta: "▲", falla: "✕"}, CLASE = {ok: "ok", alerta: "parcial", falla: "error"};
+  const hechos = a.tablas.filter((x) => x.tipo === "hecho"), dims = a.tablas.filter((x) => x.tipo !== "hecho");
+  let h = cabSup("Calidad de datos · ETL", "Almacén", "en esquema estrella",
+    "El ETL extrae de la base operativa y de los insumos controlados, depura con las reglas oficiales y carga dimensiones y hechos. De aquí salen la ficha del inmueble y el tablero. Nada se descarta en silencio: lo que no entra a un hecho queda con su motivo.") +
+    `<div class="filtros"><span class="tag ${u ? (u.estado === "ok" ? "sage" : u.estado === "con_alertas" ? "cream" : "alerta") : ""}">${u ? `Última corrida ${num(u.corrida_id)} · ${esc(u.estado.replace("_", " "))} · ${esc(fechaHora(u.fin))}` : "Sin corridas"}</span><span class="tag">Esquema v${esc(a.version_esquema)}</span><span class="sep"></span><button class="btn btn-ink" data-act="correr-etl" type="button"><span>Ejecutar ETL completo</span></button></div>`;
+  h += `<div class="kpis" style="margin-top:20px"><div class="kpi"><label>Controles en orden</label><div class="v">${num(res.ok)}</div><div class="s">de ${num(a.controles.length)}</div></div>
+    <div class="kpi"><label>Alertas</label><div class="v">${num(res.alerta)}</div><div class="s">dato válido que conviene conocer</div></div>
+    <div class="kpi"><label>Fallas</label><div class="v">${num(res.falla)}</div><div class="s">regla dura incumplida</div></div>
+    <div class="kpi"><label>Filas en hechos</label><div class="v">${num(hechos.reduce((s, x) => s + x.filas, 0))}</div><div class="s">${num(hechos.length)} tablas de hechos</div></div>
+    <div class="kpi"><label>Filas en dimensiones</label><div class="v">${num(dims.reduce((s, x) => s + x.filas, 0))}</div><div class="s">${num(dims.length)} dimensiones</div></div></div>`;
+  h += `<section class="sec" style="padding-top:34px">${cab("01", "Controles", "de calidad", "Se revisan al final de cada corrida. Una falla significa que un dato rompe una regla dura; una alerta, que el dato es válido pero tiene una limitación que la ficha declara.")}
+    <div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Resultado</th><th>Control</th><th>Tabla</th><th>Qué encontró</th></tr></thead>
+    <tbody>${a.controles.map((c) => `<tr><td class="nw"><span class="src ${CLASE[c.resultado]}">${ICONO[c.resultado]} ${esc(c.resultado)}</span></td><td class="nw">${esc(c.control.replace(/_/g, " "))}</td><td><code>${esc(c.tabla || "")}</code></td><td>${esc(c.detalle || "")}</td></tr>`).join("")}</tbody></table></div></div></section>`;
+  h += `<section class="sec">${cab("02", "Conciliación", "de la carga", `Por cada entidad: leídos = cargados + duplicados + rechazados. Corrida ${num(a.corrida_de_conciliacion)} (la última completa).`)}
+    <div class="g-7-5"><div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th>Entidad</th><th>Alcance</th><th class="r">Leídos</th><th class="r">Cargados</th><th class="r">Duplicados</th><th class="r">Rechazados</th><th>Cuadra</th></tr></thead>
+      <tbody>${a.pasos.map((p) => `<tr><td class="nw">${esc(p.entidad.replace(/_/g, " "))}</td><td><code>${esc(p.alcance || "todo")}</code></td><td class="r">${num(p.leidos)}</td><td class="r">${num(p.cargados)}</td><td class="r">${p.duplicados ? num(p.duplicados) : "·"}</td><td class="r">${p.rechazados ? num(p.rechazados) : "·"}</td><td><span class="src ${p.cuadra ? "ok" : "error"}">${p.cuadra ? "✓ sí" : "✕ no"}</span></td></tr>`).join("")}</tbody></table></div></div>
+      <div class="panel"><h4><span>Lo que quedó fuera, con su motivo</span></h4>${barras(a.rechazos.map((r) => ({etiqueta: `${r.entidad} · ${r.motivo_exclusion.replace(/_/g, " ")}`, n: r.n})), " registros", "Nada quedó fuera")}
+        <p class="sec-lead" style="margin-top:14px;font-size:12px">Los registros siguen en la base operativa con su motivo; aquí solo dejan de alimentar los hechos.</p></div></div></section>`;
+  h += `<section class="sec">${cab("03", "Ofertas", "de mercado", "Cada base se depura y se usa por separado: nunca se mezclan en una misma estadística. Precio pedido y de cierre van en su propia dimensión.")}
+    <div class="g2">${a.ofertas.map((o) => `<div class="panel"><h4><span>${esc(BASE[o.base_mercado] || o.base_mercado)}</span><span>${num(o.total)} ofertas</span></h4>
+      ${segmentada([{etiqueta: "Válidas", n: o.validas, color: VIZ.media}, {etiqueta: "Duplicadas", n: o.duplicadas, color: VIZ.baja, clara: true}, {etiqueta: "Inválidas", n: o.invalidas, color: VIZ.gris, clara: true}], "Ofertas de " + (BASE[o.base_mercado] || o.base_mercado))}
+      ${tablaDatos(["Motivo de exclusión", "Ofertas"], a.motivos_oferta.filter((m) => m.base_mercado === o.base_mercado).map((m) => [m.motivo_exclusion.replace(/_/g, " "), num(m.n)]))}</div>`).join("")}</div></section>`;
+  h += `<section class="sec">${cab("04", "Esquema", "estrella", "Dimensiones conformadas y tablas de hechos. La clave 0 de cada dimensión es el miembro “sin dato”: ningún hecho queda huérfano.")}
+    <div class="g2"><div class="panel"><h4><span>Hechos</span></h4>${barras(hechos.map((x) => ({etiqueta: x.tabla, n: x.filas})), " filas")}</div>
+      <div class="panel"><h4><span>Dimensiones</span></h4>${barras(dims.map((x) => ({etiqueta: x.tabla, n: x.filas})), " filas")}</div></div></section>`;
+  h += `<section class="sec">${cab("05", "Corridas", "del ETL", "Cada carga deja su modo, su alcance, su estado y la huella de la configuración con la que corrió.")}
+    <div class="panel" style="padding:10px 10px 4px"><div style="overflow:auto"><table class="t"><thead><tr><th class="r">Corrida</th><th>Inicio</th><th>Modo</th><th>Alcance</th><th>Estado</th><th>Huella de configuración</th><th>Detalle</th></tr></thead>
+    <tbody>${a.corridas.map((c) => `<tr><td class="r">${num(c.corrida_id)}</td><td class="nw">${esc(fechaHora(c.inicio))}</td><td>${esc(c.modo)}</td><td><code>${esc(c.alcance || "")}</code></td><td><span class="src ${c.estado === "ok" ? "ok" : c.estado === "con_alertas" ? "parcial" : "error"}">${esc(c.estado.replace("_", " "))}</span></td><td><code>${esc(c.huella_config || "")}</code></td><td class="largo">${esc(c.mensaje || "")}</td></tr>`).join("")}</tbody></table></div></div>
+    ${a.insumos.length ? `<p class="ruta">Insumos controlados: ${a.insumos.map((i) => `${esc(i.ruta)} (${esc((i.sha256 || "sin archivo").slice(0, 12))})`).join(" · ")}</p>` : ""}</section>`;
+  $("#vista").innerHTML = h;
+}
+async function accionSupervisor(act, boton) {
+  const leerFiltros = () => { if ($("#fDesde")) { SUP.desde = $("#fDesde").value || SUP.desde; SUP.hasta = $("#fHasta").value || SUP.hasta; } if ($("#fComercial")) SUP.comercial = $("#fComercial").value; if ($("#fMes")) SUP.mes = $("#fMes").value || SUP.mes; };
+  if (act === "aplicar-filtros") { leerFiltros(); return void irA(SUP.vista); }
+  boton.disabled = true;
+  try {
+    if (act === "guardar-meta") {
+      const fila = boton.closest("[data-meta]");
+      await api("/api/metas", {comercial: fila.dataset.meta, mes: SUP.mes, meta_cotizaciones: fila.querySelector('[data-campo="cot"]').value.trim(), meta_clientes: fila.querySelector('[data-campo="cli"]').value.trim()});
+      toast("Meta guardada"); await irA("metas");
+    } else if (act === "crear-seguimiento") {
+      await api("/api/seguimientos", {comercial: $("#segComercial").value, tipo: $("#segTipo").value, nota: $("#segNota").value, fecha_compromiso: $("#segFecha").value || null});
+      toast("Seguimiento registrado"); await irA("seguimiento");
+    } else if (act === "cerrar-seguimiento") {
+      await api(`/api/seguimientos/${boton.dataset.id}/cerrar`, {}); toast("Seguimiento cerrado"); await irA("seguimiento");
+    } else if (act === "correr-etl") {
+      toast("Corriendo el ETL completo…"); const r = await api("/api/almacen/etl", {});
+      toast(`ETL terminado · corrida ${r.corrida_id} · ${r.estado.replace("_", " ")}`); await irA("almacen");
+    }
+  } catch (e) { toast(e.message, true); }
+  finally { boton.disabled = false; }
+}
+
+/* ======================= LISTA Y ARRANQUE ======================= */
+async function listar() {
+  let r; try { r = await api("/api/cotizaciones"); } catch (_) { return cotizaciones; }
+  cotizaciones = r.cotizaciones;
+  const ESTADO = {en_curso: "en curso", error: "sin datos", parcial: "parcial"};
+  $("#rotCapturas").textContent = `Mis cotizaciones · ${num(r.total)}`;
+  $("#capturas").innerHTML = cotizaciones.map((c) => `<button class="card ${c.captura_id ? "" : "sin"} ${cotActual?.cotizacion_id === c.cotizacion_id ? "active" : ""}" data-cot="${esc(c.cotizacion_id)}" ${c.captura_id ? "" : "disabled"} type="button">
+      <b>${esc(c.cliente_nombre)} <em>· ${esc(DOC(c))}</em></b>
+      ${c.estado_cliente ? `<span class="estado-cli ${esc(c.estado_cliente.estado)}">${esc(c.estado_cliente.etiqueta)}${c.estado_cliente.motivo_etiqueta ? ` · ${esc(c.estado_cliente.motivo_etiqueta)}` : ""}</span>` : ""}
+      <small>${esc(c.direccion || "sin dirección")}${c.barrio ? ` · ${esc(c.barrio)}` : ""} · ${esc(new Date(c.creada_en).toLocaleDateString("es-CO"))}${c.lugares != null ? ` · ${num(c.lugares)} lugares` : ""}${ESTADO[c.estado] ? ` · ${esc(ESTADO[c.estado])}` : ""}${c.reusada ? " · reusada" : ""}${c.captura_id ? (c.ficha?.estado === "ok" ? `<i class="fch">ficha · ${esc(c.ficha.confianza)}</i>` : `<i class="fch pend">${c.ficha ? "ficha por completar" : "sin ficha"}</i>`) : ""}</small></button>`).join("")
+    || `<p class="nota">Aún no tienes cotizaciones. La primera queda guardada aquí.</p>`;
+  $("#ticker").innerHTML = (`<span>Real estate · <b>Medellín</b></span><i>◆</i><span>Activos urbanos. Rentabilidad medible.</span><i>◆</i><span>Captura · almacén · <b>ficha del inmueble</b></span><i>◆</i><span><b>${num(r.total)}</b> cotizaciones de ${esc(sesionActual?.nombre || "")}</span><i>◆</i>` +
+    cotizaciones.filter((c) => c.captura_id).slice(0, 8).map((c) => `<span><b>${esc(c.barrio || "Punto")}</b> ${esc(c.direccion || "")}${c.lugares != null ? ` · ${num(c.lugares)} lugares` : ""}</span><i>◆</i>`).join("")).repeat(2);
+  return cotizaciones;
+}
+function bienvenida() {
+  const tarjeta = (i, n, rotulo, vacio) => `<div id="foco${i}"><b>${n}</b><small>${rotulo}</small><strong data-vacio="${vacio}">${vacio}</strong></div>`;
+  $("#vista").innerHTML = `<div class="vacio"><h1>Del predio <em>a la ficha del inmueble</em></h1>
+    <p>Registra al cliente y lo que busca, ubica el predio y describe el inmueble. La aplicación reúne lo que hay a un kilómetro, busca anuncios vigentes en las inmobiliarias, lo carga al almacén y arma la ficha de mercado, entorno y norma.</p>
+    <div class="tres vivo">${tarjeta(0, "00", "Cliente", "Pendiente")}${tarjeta(1, "01", "Predio", "Pendiente")}${tarjeta(2, "02", "Inmueble", "Pendiente")}${tarjeta(3, "03", "Búsqueda", "Pendiente")}</div></div>`;
+  if (CFG) pintarFoco();
+}
+async function arrancar() {
+  try { CFG = await api("/api/config"); } catch (e) { $("#vista").innerHTML = `<div class="vacio"><h1>Sin conexión <em>con la aplicación</em></h1><p>${esc(e.message)}</p></div>`; return; }
+  claudeOn = CFG.claude.disponible;                          // la depuración con Claude y las fuentes oficiales van siempre
+  for (const x of CFG.inmobiliarias.lista || []) if (x.permitida !== false && x.por_defecto !== false) portalesOn.add(x.id);
+  $("#btnCapturar span").textContent = `Buscar · ${num(CFG.radio_m / 1000, 1)} km`;
+  $("#cliCel").placeholder = `${num(CFG.clientes.celular.digitos)} dígitos`;
+  $("#cliAutorizaTexto").textContent = CFG.clientes.texto_autorizacion;
+  $("#cliDoc").maxLength = CFG.clientes.documento_max_digitos + 4;   // deja escribir puntos y espacios
+  $("#cliTipo").innerHTML = Object.keys(CFG.clientes.tipos_documento || {CC: {}}).map((k) => `<option value="${esc(k)}" title="${esc((CFG.clientes.tipos_documento[k] || {}).etiqueta || k)}" ${k === CFG.clientes.tipo_por_defecto ? "selected" : ""}>${esc(k)}</option>`).join("");
+  pintarBusca(); pintarPortales();
+  $("#pie").textContent = `v${CFG.version} · configuración ${CFG.huella_config} · ${CFG.google.places ? "Google Places activo" : "sin llave de Google (opcional)"}`;
+  if (esAdmin()) return void arrancarAdmin();
+  if (esSup()) return void arrancarSupervisor();
+  verAutorizacion(true); fijarCliente(null); setTimeout(() => $("#cliDoc").focus(), 80);
+  bienvenida(); listar(); miGestion(); iniciarMapa();
+}
+$("#mapaBtn").onclick = () => {
+  const chico = $(".mapa-caja").classList.toggle("chico");
+  $("#mapaBtn").textContent = chico ? "Ampliar mapa" : "Reducir mapa"; $("#mapaBtn").setAttribute("aria-expanded", String(!chico));
+  setTimeout(() => mapa?.ajustar(), 520);
+};
+$("#formAcceso").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const boton = $("#formAcceso button"); boton.disabled = true; $("#accError").textContent = "";
+  try { entrar(await api("/api/login", {usuario: $("#accUsuario").value, clave: $("#accClave").value})); }
+  catch (err) { $("#accError").textContent = err.message; $("#accClave").value = ""; $("#accClave").focus(); }
+  finally { boton.disabled = false; }
+});
+$("#btnSalir").onclick = async () => { try { await api("/api/logout", {}); } catch (_) {} location.reload(); };
+$("#cliDoc").addEventListener("input", () => { clearTimeout(buscarCliente.t); buscarCliente.t = setTimeout(buscarCliente, 350); });
+$("#cliDoc").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#cliNombre").focus(); });
+$("#cliNombre").addEventListener("keydown", (e) => { if (e.key === "Enter") registrarCliente(); });
+$("#btnCliente").onclick = registrarCliente;
+$("#btnUbicar").onclick = ubicar;
+$("#dir").addEventListener("keydown", (e) => { if (e.key === "Enter") ubicar(); });
+$("#conjunto").addEventListener("input", () => { conjuntoEditado = true; });
+$("#dir").addEventListener("input", () => { dirEditada = true; });
+$("#cliCel").addEventListener("keydown", (e) => { if (e.key === "Enter") registrarCliente(); });
+$("#btnBusca").onclick = () => pintarFormulario(1);
+$("#btnPaso1").onclick = () => pintarFormulario(2);
+$("#btnPaso2").onclick = () => pintarFormulario(3);
+$("#btnBarrio").onclick = buscarBarrio;
+$("#barrioQ").addEventListener("keydown", (e) => { if (e.key === "Enter") buscarBarrio(); });
+$("#filtroPortales").addEventListener("input", pintarPortales);
+document.addEventListener("input", (e) => {                 // campos numéricos: no dejan escribir otra cosa
+  const el = e.target;
+  if (el.matches?.("[data-entero]")) el.value = el.value.replace(/\D/g, "");
+  if (el.id === "inmArea" || el.id === "finArea") el.value = el.value.replace(/[^\d.,]/g, "");
+  if (el.id === "cliCel") el.value = el.value.replace(/[^\d+ ]/g, "");
+  if (el.closest?.("#bloqueInmueble")) revisarInmueble();
+});
+document.addEventListener("change", (e) => {
+  if (e.target.id === "inmTipo") { ajustarCampos("inm"); revisarInmueble(); }
+  if (e.target.id === "finTipo") ajustarCampos("fin");
+});
+document.addEventListener("keydown", (e) => { const p = e.target.closest?.("[data-ir]"); if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pintarFormulario(Number(p.dataset.ir)); } });
+$("#btnCapturar").onclick = () => capturar(true);
+$("#cliTipo").addEventListener("change", () => { clearTimeout(buscarCliente.t); buscarCliente(); });
+document.addEventListener("click", async (e) => {
+  const navA = e.target.closest("[data-vista-adm]"); if (navA) return void irAdm(navA.dataset.vistaAdm);
+  const nav = e.target.closest("[data-vista]"); if (nav) return void irA(nav.dataset.vista);
+  const accAdm = e.target.closest("[data-adm]"); if (accAdm) return void accionAdmin(accAdm.dataset.adm, accAdm);
+  const opEstado = e.target.closest("[data-estado-cli]"); if (opEstado) return void elegirEstadoCliente(opEstado);
+  const dias = e.target.closest("[data-dias]"); if (dias) { SUP.hasta = hoyISO(); SUP.desde = masDias(SUP.hasta, -(Number(dias.dataset.dias) - 1)); return void irA(SUP.vista); }
+  const filaSup = e.target.closest("[data-cot-sup]");
+  if (filaSup) { await pintarFicha(filaSup.dataset.cotSup, "#secFichaSup"); $("#secFichaSup").scrollIntoView({behavior: "smooth", block: "start"}); return; }
+  const accion = e.target.closest("[data-act]");
+  if (accion && ["guardar-inmueble", "regenerar-ficha", "buscar-inmobiliarias"].includes(accion.dataset.act)) return void accionFicha(accion.dataset.act, accion);
+  if (accion?.dataset.act === "guardar-estado-cliente") return void guardarEstadoCliente(accion);
+  if (accion?.dataset.act === "imprimir-cliente") { toast("Se abrió la hoja para el cliente. Cuando se la entregues, marca la ficha como entregada."); return; }
+  if (accion?.dataset.act === "portales-todos") {
+    const permitidas = (CFG.inmobiliarias.lista || []).filter((x) => x.permitida !== false), todas = permitidas.every((x) => portalesOn.has(x.id));
+    portalesOn.clear(); if (!todas) permitidas.forEach((x) => portalesOn.add(x.id)); return void pintarPortales();
+  }
+  if (accion?.dataset.act === "portales-defecto") {
+    portalesOn.clear(); (CFG.inmobiliarias.lista || []).forEach((x) => { if (x.permitida !== false && x.por_defecto !== false) portalesOn.add(x.id); }); return void pintarPortales();
+  }
+  if (accion?.dataset.act === "portales-ver") {
+    const caja = $("#cajaPortales"); caja.hidden = !caja.hidden; accion.textContent = caja.hidden ? "Ver la lista" : "Ocultar la lista"; accion.setAttribute("aria-expanded", String(!caja.hidden)); return;
+  }
+  if (accion?.dataset.act === "mas-extra") {
+    const caja = $(`#${accion.dataset.de}Extras`);
+    if (caja.children.length >= CFG.inmueble.max_extras) return void toast(`Máximo ${num(CFG.inmueble.max_extras)} características adicionales`, true);
+    caja.insertAdjacentHTML("beforeend", filaExtra(accion.dataset.de)); caja.lastElementChild.querySelector("input").focus(); return;
+  }
+  if (accion?.dataset.act === "quita-extra") { accion.closest(".extra").remove(); revisarInmueble(); return; }
+  if (accion && ["aplicar-filtros", "guardar-meta", "crear-seguimiento", "cerrar-seguimiento", "correr-etl"].includes(accion.dataset.act)) return void accionSupervisor(accion.dataset.act, accion);
+  const ir = e.target.closest("[data-ir]"); if (ir) return void pintarFormulario(Number(ir.dataset.ir));
+  const cb = e.target.closest("[data-busca]");
+  if (cb) { const x = cb.dataset.busca; busca.has(x) ? busca.delete(x) : busca.add(x); pintarBusca(); return; }
+  const cp = e.target.closest("[data-portal]");
+  if (cp) { const x = cp.dataset.portal; portalesOn.has(x) ? portalesOn.delete(x) : portalesOn.add(x); pintarPortales(); return; }
+  const cbar = e.target.closest("[data-barrio]"); if (cbar) return void elegirBarrio(Number(cbar.dataset.barrio));
+  const card = e.target.closest(".card");
+  if (card) { const cot = cotizaciones.find((c) => c.cotizacion_id === card.dataset.cot); if (cot?.captura_id) abrir(cot.captura_id, cot.reusada, cot); return; }
+  const cat = e.target.closest("[data-cat]"); if (cat) return void alternar(cat.dataset.cat);
+  const act = e.target.closest("[data-act]")?.dataset.act;
+  if (act === "recapturar") return void capturar(false);
+  if (act === "cambiar-cliente") {
+    fijarCliente(null); existente = null; $("#cliDoc").value = ""; $("#cliNombre").value = ""; $("#cliCel").value = ""; verAutorizacion(true);
+    mensajeCliente("Antes de consultar una dirección, registra para quién es."); $("#cliDoc").focus(); return;
+  }
+  if (act === "conjunto" && actual) {
+    try { await api(`/api/capturas/${actual.captura_id}/conjunto`, {nombre: $("#conjEdit").value.trim()}); toast("Nombre del conjunto guardado"); await abrir(actual.captura_id, false, cotActual); listar(); }
+    catch (err) { toast(err.message, true); }
+  }
+});
+inicio();
+})();
+</script>
+</body>
+</html>

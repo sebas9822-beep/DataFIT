@@ -1,0 +1,228 @@
+# REGLAS DE NEGOCIO de la captura (criterio de Venture One).
+# Cambiar un valor aqui cambia los resultados: registrar la decision en auditoria/decisiones.md.
+# Lo tecnico (rutas, servidores, tiempos de espera) vive en params.yaml.
+version: "1.0"
+
+captura:
+  radio_m: 1000                 # radio del barrido de entorno
+  anillos_m: [300, 500, 1000]   # anillos de caminabilidad para los indicadores
+  reusar_captura_dias: 30       # mismo punto dentro de este plazo: se reusa sin volver a consultar
+  tolerancia_mismo_punto_m: 11  # dos puntos a menos de esto se consideran el mismo
+
+ubicacion:
+  radio_placa_cercana_m: 60     # placa catastral mas cercana al punto
+  radio_conjunto_m: 80          # busqueda del nombre del conjunto o edificio alrededor del punto
+  tipos_toponimia_residencial: ["01", "02", "29", "47"]   # Edificios, Conjunto Residencial, Condominio, RPH
+  condicion_predio_ph: [9, 8]   # 9 = PH, 8 = Condominio (dominio oficial del catastro)
+  precision:                    # niveles P1..P5 del concepto del buscador de predios
+    placa_exacta: P1
+    placa_cercana: P2
+    pin_usuario: P2
+    externo: P3
+  limites_medellin:             # caja de control; la cobertura real la decide la capa de barrios
+    lat: [6.10, 6.40]
+    lng: [-75.75, -75.45]
+
+indicadores:
+  categorias_cobertura_basica: [educacion, salud, abastecimiento]
+  cobertura_basica_m: 500
+  categorias_diversidad: [educacion, salud, parques, cultura, seguridad, movilidad, abastecimiento, empresas]
+
+deduplicacion:                  # mismo lugar reportado por dos fuentes distintas
+  distancia_max_m: 80
+  distancia_plena_m: 25
+  peso_nombre: 0.65
+  peso_distancia: 0.35
+  similitud_minima_nombre: 55   # 0-100 (promedio de dos medidas de rapidfuzz)
+  umbral_auto: 0.85             # desde aqui se enlazan sin intervencion
+  umbral_revision: 0.60         # entre revision y auto: decide Claude o queda en cola de revision
+  sin_nombre:
+    distancia_max_m: 15
+    puntaje: 0.70
+  prioridad_fuente: [geomedellin, catastro, osm, google]   # quien queda como registro maestro
+
+calidad:
+  campos_completitud: [nombre, subtipo, lat, lng]
+  anios_dato_antiguo: 5
+
+google:
+  dias_cache: 30                # terminos de Google: lat/lng como maximo 30 dias; el nombre no se guarda
+  max_resultados: 20
+  subdividir: true
+  traslape_subcirculo: 1.05
+
+establecimientos:
+  nombres_sin_local: ["NO POSEE ESTABLECIMIENTOS", "NO POSEE ESTABLECIMIENTO", "SIN ESTABLECIMIENTO"]
+  motivo_sin_local: sin_establecimiento_fisico
+
+ofertas:
+  tipo_precio: pedido           # la capa OIME trae precio de oferta, nunca de cierre
+  area_valida_m2: [15, 2000]
+  preferencia_area: privada
+  operaciones: {SELL: venta, RENT: arriendo}
+
+datos_personales:               # se eliminan al capturar; nunca llegan a la base
+  campos_prohibidos: [phone, telefono, telefono_1, celular, whatsapp, email, correo, contactname,
+                      nombre_contacto, owner, propietario, main_phone, secondary_phone,
+                      employee_phone, surnames, reported_by, referred_by, investigated_by,
+                      agency, coordinador, description]
+
+clientes:
+  # Registro breve del cliente antes de capturar (decision D-29). Se guarda solo en la base local:
+  # no va a Claude, no sale en las exportaciones del entorno y en las listas se muestra enmascarado.
+  documento_min_digitos: 5      # cedula de ciudadania: solo numeros, sin puntos
+  documento_max_digitos: 10
+  # Tipos de documento (decision DU-09). La carpeta de fichas del cliente lleva el numero.
+  tipo_por_defecto: CC
+  tipos_documento:
+    CC:  {etiqueta: "Cedula de ciudadania", min_digitos: 5, max_digitos: 10}
+    NIT: {etiqueta: "NIT (sin digito de verificacion)", min_digitos: 9, max_digitos: 10}
+    CE:  {etiqueta: "Cedula de extranjeria", min_digitos: 5, max_digitos: 10}
+  digitos_visibles: 4           # en listas se ve  CC ****5678
+  celular:
+    # Celular del cliente (decision DU-22). Igual que el documento: solo en la base local, enmascarado en
+    # listas, fuera de Claude, de las exportaciones y del almacen.
+    obligatorio: true
+    digitos: 10                 # celular colombiano
+    prefijos: ["3"]
+    indicativo: "57"            # se acepta escrito con +57 y se guarda sin el
+  nombre_min: 3
+  nombre_max: 120
+  exigir_autorizacion: true     # false = el registro no pide la casilla de autorizacion
+  # Texto provisional: validarlo con juridica (A-13). Si cambia, las autorizaciones nuevas guardan
+  # la huella del texto nuevo; las anteriores conservan la del texto que se acepto.
+  texto_autorizacion: "El cliente autoriza a Venture One S.A.S. a tratar su nombre, cédula y número de celular para atender esta solicitud, conforme a la Ley 1581 de 2012."
+
+cotizaciones:
+  # Una cotizacion = un comercial + un cliente + una captura (nueva o reusada) + su evidencia.
+  estados_que_cuentan: [ok, parcial]   # las que suman en "cotizaciones del cliente / del comercial"
+  max_en_lista: 60                     # cotizaciones que muestra el panel del comercial
+
+acceso:
+  clave_minima: 8               # para claves nuevas (scripts/cambiar_clave.py)
+
+curaduria_ia:
+  max_items: 240                # tope de registros enviados a Claude por captura
+  tamano_lote: 60
+  similitud_minima_renombre: 60 # el nombre corregido debe parecerse al original (0-100)
+  fuentes_excluidas: [google]   # el contenido de Google Places no se envia a otro servicio
+  capas_excluidas: [establecimientos, camaras_cctv, paradas_bus, oferta_oime]
+  cambia_categoria_si_confianza_regla: [baja, media]
+
+inmueble:
+  # Datos del inmueble que el comercial declara al cotizar. Con ellos la ficha busca comparables
+  # (misma clase de inmueble, area dentro de la tolerancia oficial y, si la base lo informa, mismo estado).
+  obligatorios: [tipo, area_m2]     # el area es obligatoria para todo tipo de inmueble (decision DU-24)
+  # Campos que se piden segun el tipo. Lo que no este en la lista no se muestra ni se acepta.
+  campos_por_tipo:
+    apartamento: [area_m2, estado, habitaciones, banos, parqueaderos]
+    casa:        [area_m2, estado, habitaciones, banos, parqueaderos]
+    estudio:     [area_m2, estado, habitaciones, banos, parqueaderos]
+    casa_lote:   [area_m2, estado, habitaciones, banos, parqueaderos]
+    oficina:     [area_m2]
+    local:       [area_m2]
+    bodega:      [area_m2]
+    consultorio: [area_m2]
+    lote:        [area_m2]
+  # Caracteristicas adicionales que el comercial quiera anotar (nombre y valor, texto libre).
+  max_extras: 8
+  extra_nombre_max: 40
+  extra_valor_max: 80
+  exigir_al_cotizar: true       # false = se puede cotizar sin ellos; la ficha queda 'incompleta' hasta completarlos
+  tipos: [apartamento, casa, estudio, casa_lote, oficina, local, bodega, consultorio, lote]
+  area_m2: [15, 2000]           # mismo rango valido de las ofertas
+  max_habitaciones: 20
+  max_banos: 20
+  max_parqueaderos: 20
+  # Los estados son los canonicos de parametros.yaml (oficial): remodelado, habitable, por_remodelar.
+  etiquetas_estado: {remodelado: "Remodelado", habitable: "Habitable", por_remodelar: "Por remodelar"}
+
+busqueda:
+  # Lo que busca el cliente (decision DU-19): uno o varios tipos de inmueble por cotizacion, tomados de
+  # inmueble.tipos. Se registra antes de capturar y enfoca las ofertas que se muestran, la ficha y el
+  # tablero de demanda. El tipo del inmueble que se cotiza siempre hace parte de lo que busca el cliente.
+  exigir_al_cotizar: true       # false = se puede cotizar sin registrarlo
+  min_tipos: 1
+  barrios_en_lista: 12          # resultados al buscar un barrio o una comuna por nombre
+  barrio_min_letras: 3
+
+fichas:
+  generar_al_cotizar: true      # al terminar la captura corre el ETL y se genera la ficha del inmueble
+  formato_carpeta: documento    # fichas_clientes/<NIT o cedula>/
+  conservar_versiones: true     # regenerar una ficha crea una version nueva; la anterior no se borra
+  max_comparables_en_md: 40     # filas de comparables en el Markdown; el JSON de la ficha los trae todos
+
+supervision:
+  # Rol supervisor (decision DU-11): ve el consolidado de todos los comerciales, fija metas y
+  # registra seguimiento. Un comercial solo ve lo suyo.
+  supervisor_puede_cotizar: false
+  tipos_seguimiento: [observacion, compromiso, reconocimiento, alerta]
+  etiquetas_seguimiento: {observacion: "Observación", compromiso: "Compromiso", reconocimiento: "Reconocimiento", alerta: "Alerta"}
+  estados_seguimiento: [abierto, cerrado]
+  nota_min: 3
+  nota_max: 600
+  meta_max: 10000
+  dias_tablero_por_defecto: 30
+  max_dias_periodo: 800         # periodo mas largo que acepta el tablero
+  barrios_en_tablero: 8         # barrios mas cotizados que muestra el tablero
+  max_en_lista: 600             # cotizaciones, clientes y seguimientos que devuelve una lista de supervision
+  seguimientos_del_comercial: 25   # notas abiertas que ve un comercial en su panel
+  corridas_en_panel: 12         # ultimas corridas del ETL en el panel de calidad
+
+# --- Administracion de la plataforma (decision DU-36) --------------------------------------------
+# El administrador gestiona usuarios, el catalogo de inmobiliarias y los respaldos. No cotiza ni ve
+# cotizaciones o clientes. Todo lo que hace queda en la bitacora de administracion.
+administracion:
+  usuario_min: 3                # letras del nombre de usuario (minusculas, numeros, punto, guion)
+  usuario_max: 30
+  nombre_max: 80
+  nota_max: 400                 # nota de un sitio del catalogo
+  url_max: 500                  # largo de la direccion de busqueda de un sitio
+  motivo_min_letras: 5          # al eliminar una inmobiliaria hay que decir por que
+  bitacora_en_lista: 200
+  tipos_sitio: [portal, inmobiliaria, agregador]
+  niveles_sitio: [A, B, C]
+
+# --- Estado de la ficha con el cliente (decision DU-37) ------------------------------------------
+# El comercial lo actualiza cada vez que cambia; queda todo el historial y vale el ultimo.
+# Una ficha recien hecha esta en `estado_inicial` hasta que el comercial registre otro.
+gestion_cliente:
+  estado_inicial: por_entregar
+  estados:
+    por_entregar: {etiqueta: "Por entregar", ayuda: "La ficha está lista y el cliente todavía no la tiene"}
+    entregada: {etiqueta: "Entregada al cliente", ayuda: "El cliente ya recibió la información"}
+    aceptada: {etiqueta: "Aceptada por el cliente", ayuda: "El cliente aceptó"}
+    rechazada: {etiqueta: "Rechazada por el cliente", ayuda: "El cliente no aceptó", exige_motivo: true}
+  motivos_rechazo:
+    precio: "Precio"
+    ubicacion: "Ubicación"
+    area_distribucion: "Área o distribución"
+    estado_inmueble: "Estado del inmueble"
+    financiacion: "Financiación"
+    otra_opcion: "Encontró otra opción"
+    otro: "Otro"
+  motivo_min_letras: 5
+  motivo_max: 400
+  nota_max: 400
+  historial_en_lista: 30
+
+# --- Hoja para el cliente, lista para imprimir (decision DU-38) ----------------------------------
+# Una pagina, sin evidencia del procesamiento. Da el precio de referencia del mercado; no es un
+# avaluo ni recomienda comprar o invertir.
+hoja_cliente:
+  rango_percentiles: [25, 75]   # "la mitad de los anuncios similares pide entre ... y ..."
+  minimo_para_rango: 4          # con menos anuncios se muestran el menor y el mayor
+  redondeo_m2_cop: 10000        # las cifras por m2 se redondean a 10 mil
+  redondeo_total_cop: 1000000   # y las del inmueble completo al millon
+  categorias_entorno: [educacion, salud, parques, abastecimiento]
+  etiquetas_entorno:
+    educacion: ["lugar de educación", "lugares de educación"]
+    salud: ["servicio de salud", "servicios de salud"]
+    parques: ["parque o zona verde", "parques y zonas verdes"]
+    abastecimiento: ["sitio para mercar", "sitios para mercar"]
+    seguridad: ["punto de seguridad", "puntos de seguridad"]
+    cultura: ["sitio cultural", "sitios culturales"]
+  firmeza:                      # como se le dice al cliente la confianza de los datos (alta, media, baja)
+    alta: {titulo: "Referencia firme", texto: "Hay suficientes anuncios y sus precios son parecidos entre sí."}
+    media: {titulo: "Referencia razonable", texto: "Hay suficientes anuncios, con diferencias moderadas de precio entre ellos."}
+    baja: {titulo: "Referencia orientativa", texto: "Hay pocos anuncios o sus precios son muy distintos entre sí: tómela como una guía general."}

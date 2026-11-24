@@ -1,0 +1,119 @@
+# MOTOR DE FICHA (Momento 2) dentro de la aplicación única.
+# Parámetros técnicos del proyecto. Las REGLAS DE NEGOCIO del reto (estados, rango de precio/m²,
+# tolerancia de área, deduplicación, confianza, radio, transporte, equipamientos y norma) viven en
+# config/parametros.yaml, copia del archivo oficial de Venture One. Este archivo no las repite:
+# solo agrega rutas, CRS, trazabilidad y los controles propios del proyecto.
+# La huella de ambos archivos queda registrada en cada ficha.
+
+reglas_negocio: config/parametros.yaml
+
+ejecucion:
+  fecha_generacion: null         # AAAA-MM-DD fija para repetir una corrida; null = fecha del día
+
+rutas:                           # relativas a la raíz del proyecto
+  anuncios_csv: reto_oficial/data/anuncios_muestra.csv
+  inmuebles_csv: reto_oficial/data/inmuebles_prueba.csv
+  transporte_geojson: reto_oficial/data/geo/transporte.geojson
+  equipamientos_geojson: reto_oficial/data/geo/equipamientos.geojson
+  pot_geojson: data/geo/pot_tratamientos.geojson                 # scripts/descargar_pot.py; si no existe, norma = pendiente_capa
+  esperado_json: reto_oficial/validacion/esperado.json           # cálculo manual de 3 inmuebles
+  validador_py: reto_oficial/validacion/validar.py               # validador oficial
+  salida_dir: salidas/reto          # fichas de los 11 inmuebles de prueba (lote oficial)
+  auditoria_dir: salidas/reto/auditoria
+
+esquema:                         # nombre canónico (izquierda): nombre de la columna en el archivo (derecha)
+  anuncios:
+    id_anuncio: id_anuncio
+    fuente: fuente
+    fecha: fecha
+    zona: zona
+    municipio: municipio
+    barrio: barrio
+    area_m2: area_m2
+    precio: precio
+    habitaciones: habitaciones
+    banos: banos
+    parqueadero: parqueadero
+    estado: estado
+    tipo_precio: tipo_precio
+    origen: origen               # clave única de cada fila (archivo:hoja:fila)
+  inmuebles:
+    id_inmueble: id_inmueble
+    id_anuncio: id_anuncio
+    origen: origen
+    direccion: direccion
+    zona: zona
+    municipio: municipio
+    barrio: barrio
+    area_m2: area_m2
+    estado: estado
+    lat: lat
+    lon: lon
+    precision_coordenadas: precision_coordenadas
+    fuente_coordenadas: fuente_coordenadas
+
+crs:
+  entrada: "EPSG:4326"           # WGS84. Los GeoJSON sin miembro "crs" son WGS84 por RFC 7946
+  metrico: "EPSG:9377"           # MAGNA-SIRGAS 2018 / Origen-Nacional (metros): control de distancias
+  asumir_entrada_si_falta: false # capa leída sin CRS: false = detener
+  bbox_area_estudio:             # lon/lat WGS84. Detecta CRS mal declarado y puntos fuera de zona
+    lon_min: -75.80
+    lon_max: -75.30
+    lat_min: 5.95
+    lat_max: 6.50
+
+limpieza:
+  formatos_fecha: ["%Y-%m-%d", "%d/%m/%Y"]   # la columna fecha es ISO según el diccionario
+  campos_bitacora: [id_anuncio, fecha, barrio, area_m2, precio, habitaciones, banos, parqueadero, estado]
+  estado_sin_mapeo: sin_clasificar
+
+deduplicacion:
+  # La regla oficial (parametros.yaml) conserva la primera fila del CSV. "mas_completo" es una
+  # alternativa para análisis: conserva la fila válida con más campos diligenciados. No es la oficial.
+  representante: primera_fila
+  revision_tolerancias:          # solo auditoría: candidatos que la regla exacta no agrupa. No fusiona.
+    activa: true
+    tolerancia_area_pct: 0.03
+    tolerancia_precio_pct: 0.03
+    pesos_puntaje: {area: 0.5, precio: 0.5}
+
+comparables:
+  excluir_grupo_propio: true     # se excluye el grupo de duplicados que contiene el anuncio del inmueble
+  flexibilizacion:               # inactiva: la definición oficial de comparable no prevé ampliar la tolerancia
+    activa: false
+    minimo: 3                    # mínimo de comparables que dispara la flexibilización
+    pasos:                       # cada paso aplicado queda visible en la ficha
+      - {nombre: tolerancia_area_40, tolerancia_area: 0.40}
+      - {nombre: tolerancia_area_50, tolerancia_area: 0.50}
+
+precios:
+  preferencia_base: [cierre, pedido]     # la referencia usa cierres si hay suficientes
+  min_comparables_cierre: 3              # cierres necesarios para que la referencia sea de cierre
+  permitir_mezcla_pedido_cierre: false   # nunca se mezclan pedido y cierre en una misma estadística
+
+entorno:
+  metodo_distancia: haversine    # método del cálculo manual oficial (decisión de Sebastián, 14-nov-2026)
+  radio_tierra_m: 6371008.8      # radio medio terrestre del cálculo manual
+  control_proyectado: true       # recalcula en crs.metrico y deja la diferencia en auditoria/control_distancias.csv
+  precision_exacta: [cruce, P1, P2]   # cruce (muestra oficial); P1 placa exacta y P2 placa cercana o punto marcado (captura). Otra precisión marca el entorno como aproximado
+  campos_pot_adicionales: [codigo_tratamiento, categoria_tratamiento, clase_suelo]   # se informan si la capa los trae
+  campo_sistema: sistema
+  campo_nombre: nombre
+  campo_categoria: categoria
+
+pot_descarga:                    # scripts/descargar_pot.py (solo biblioteca estándar)
+  servicio: https://www.medellin.gov.co/servidormapas/rest/services/ServiciosCiudad/MAP6_Indicadores/MapServer/7
+  nombre_capa: Tratamiento POT vigente
+  donde: "1=1"
+  campos: [objectid, codigo_tratamiento, tratamiento, categoria_tratamiento, clase_suelo, tipo, zona]
+  lote: 200                      # objetos por consulta (el servicio admite hasta 2000)
+  precision_geometria: 7         # decimales de grado (~1 cm); no se simplifica la geometría
+  intentos: 6
+  espera_s: 20                   # espera inicial entre intentos; se duplica en cada fallo
+  tiempo_maximo_s: 120
+  atribucion: "Distrito de Medellín - GeoMedellín - Departamento Administrativo de Planeación"
+
+ficha:
+  incluir_valor_indicativo: false   # precio/m² × área: se acerca a una valoración; fuera del alcance
+  generar_markdown: true            # vista de lectura de la plantilla oficial en salidas/fichas_md/
+  fuentes: ["data/anuncios_muestra.csv", "OpenStreetMap (ODbL)"]

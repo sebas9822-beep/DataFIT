@@ -1,0 +1,296 @@
+{
+  "id_inmueble": "INM-05",
+  "inmueble": {
+    "direccion": null,
+    "barrio": "Bombona No1",
+    "municipio": "medellin",
+    "zona": "buenos_aires_el_salvador",
+    "area_m2": 67.0,
+    "estado_texto": "Remodelar",
+    "estado": "por_remodelar",
+    "coordenadas": {
+      "lat": 6.244064,
+      "lon": -75.56236,
+      "precision": "barrio",
+      "fuente": "OSM node/369456412 (Bomboná Numero 1)"
+    }
+  },
+  "mercado": {
+    "estado_referencia": "por_remodelar",
+    "precio_m2": {
+      "n": 11,
+      "mediana": 4666667,
+      "promedio": 4696756,
+      "minimo": 3081395,
+      "maximo": 6666667,
+      "desviacion": 904997,
+      "coef_variacion": 0.1927
+    },
+    "confianza": {
+      "nivel": "media",
+      "motivo": "11 comparables (mínimo 3) y coeficiente de variación 19.27% (máximo 25%)",
+      "alcance": "Mide calidad y suficiencia de los datos. No mide rentabilidad ni conveniencia de compra."
+    },
+    "comparables": [
+      {
+        "origen": "extension_poligono.xlsx:REMODELAR:90",
+        "id_anuncio": "",
+        "fuente": "facebook",
+        "area_m2": 86.0,
+        "precio": 265000000,
+        "precio_m2": 3081395,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:REMODELAR:83",
+        "id_anuncio": "fincaraiz:192609616",
+        "fuente": "fincaraiz",
+        "area_m2": 65.0,
+        "precio": 250000000,
+        "precio_m2": 3846154,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:Bombona:18",
+        "id_anuncio": "fincaraiz:193000855",
+        "fuente": "fincaraiz",
+        "area_m2": 60.0,
+        "precio": 260000000,
+        "precio_m2": 4333333,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:El salvador:9",
+        "id_anuncio": "",
+        "fuente": "facebook",
+        "area_m2": 50.34,
+        "precio": 220000000,
+        "precio_m2": 4370282,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:REMODELAR:80",
+        "id_anuncio": "fincaraiz:192947650",
+        "fuente": "fincaraiz",
+        "area_m2": 54.0,
+        "precio": 240000000,
+        "precio_m2": 4444444,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:Bombona:16",
+        "id_anuncio": "fincaraiz:192983429",
+        "fuente": "fincaraiz",
+        "area_m2": 60.0,
+        "precio": 280000000,
+        "precio_m2": 4666667,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:Bombona:11",
+        "id_anuncio": "fincaraiz:191865763",
+        "fuente": "fincaraiz",
+        "area_m2": 52.0,
+        "precio": 247000000,
+        "precio_m2": 4750000,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:Bombona:14",
+        "id_anuncio": "fincaraiz:191795362",
+        "fuente": "fincaraiz",
+        "area_m2": 48.6,
+        "precio": 250000000,
+        "precio_m2": 5144033,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:Bombona:17",
+        "id_anuncio": "fincaraiz:191508829",
+        "fuente": "fincaraiz",
+        "area_m2": 68.0,
+        "precio": 350000000,
+        "precio_m2": 5147059,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:Bombona:13",
+        "id_anuncio": "fincaraiz:191455271",
+        "fuente": "fincaraiz",
+        "area_m2": 70.0,
+        "precio": 365000000,
+        "precio_m2": 5214286,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "extension_poligono.xlsx:REMODELAR:6",
+        "id_anuncio": "",
+        "fuente": "aviso_calle",
+        "area_m2": 48.0,
+        "precio": 320000000,
+        "precio_m2": 6666667,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      }
+    ],
+    "precio_m2_por_estado_en_zona": {
+      "remodelado": {
+        "n": 0,
+        "mediana": null
+      },
+      "habitable": {
+        "n": 15,
+        "mediana": 3909091
+      },
+      "por_remodelar": {
+        "n": 17,
+        "mediana": 4666667
+      }
+    },
+    "base_referencia": "pedido",
+    "mezcla_pedido_cierre": false,
+    "precio_m2_por_tipo": {
+      "pedido": {
+        "n": 11,
+        "mediana": 4666667,
+        "promedio": 4696756,
+        "minimo": 3081395,
+        "maximo": 6666667,
+        "desviacion": 904997,
+        "coef_variacion": 0.1927
+      },
+      "cierre": {
+        "n": 0,
+        "mediana": null,
+        "promedio": null,
+        "minimo": null,
+        "maximo": null,
+        "desviacion": null,
+        "coef_variacion": null
+      }
+    },
+    "criterio_comparables": {
+      "aplicada": false,
+      "activa": false,
+      "minimo": 3,
+      "tolerancia_area_base": 0.3,
+      "n_base": 11,
+      "pasos_aplicados": [],
+      "tolerancia_area_final": 0.3,
+      "n_final": 11,
+      "rango_area_m2": [
+        46.9,
+        87.1
+      ],
+      "grupos_propios_excluidos": [
+        "extension_poligono.xlsx:REMODELAR:82"
+      ]
+    }
+  },
+  "calidad_datos_zona": {
+    "anuncios_en_zona": 82,
+    "duplicados_eliminados": 28,
+    "anuncios_unicos": 54,
+    "anuncios_invalidos": {
+      "estado_sin_clasificar": 20,
+      "sin_area": 1
+    },
+    "anuncios_validos": 33,
+    "grupos_duplicados_ambiguos": 2,
+    "validos_absorbidos_por_representante_invalido": 8
+  },
+  "entorno": {
+    "radio_busqueda_m": 800,
+    "estacion_mas_cercana": {
+      "nombre": "Pabellón del agua EPM",
+      "sistema": "tranvia",
+      "distancia_m": 174
+    },
+    "estaciones_en_radio": 3,
+    "equipamientos_en_radio": {
+      "educacion": 54,
+      "salud": 12,
+      "parques": 19,
+      "abastecimiento": 8,
+      "seguridad": 1,
+      "cultura": 10
+    },
+    "aproximado": true,
+    "metodo_distancia": "haversine"
+  },
+  "norma": {
+    "tratamiento_pot": null,
+    "estado": "pendiente_capa",
+    "motivo": "Falta el archivo data/geo/pot_tratamientos.geojson",
+    "nota": "Cruce informativo con la capa entregada. No constituye concepto jurídico ni urbanístico."
+  },
+  "datos_faltantes": [
+    "direccion",
+    "coordenadas_exactas",
+    "fecha_publicacion_comparables",
+    "precios_de_cierre"
+  ],
+  "metadatos": {
+    "version_parametros": "1.0",
+    "fecha_generacion": "2026-11-15",
+    "fecha_capas_osm": "2026-11-13T23:03:06Z",
+    "fuentes": [
+      "data/anuncios_muestra.csv",
+      "OpenStreetMap (ODbL)"
+    ]
+  },
+  "trazabilidad": {
+    "version_pipeline": "0.3.0",
+    "hash_parametros": "750c8deb8dc81a35438c01886d24feac9c9a0f4df1a6834aa7f4bc04afbf7c88",
+    "regla_deduplicacion": {
+      "claves_sin_id": [
+        "zona",
+        "area_m2",
+        "precio"
+      ],
+      "representante": "primera_fila"
+    },
+    "control_distancia": {
+      "crs": "EPSG:9377",
+      "estacion_mas_cercana": "Pabellón del agua EPM",
+      "distancia_estacion_m": 173,
+      "diferencia_m": -1,
+      "estaciones_en_radio": 3,
+      "equipamientos_en_radio": 105,
+      "equipamientos_que_cambian": 1
+    },
+    "archivos": {
+      "anuncios": {
+        "archivo": "reto_oficial/data/anuncios_muestra.csv",
+        "sha256": "79245590ed3a2e945f383be459acfe384417c02308325c9f37f3b895b24ff196"
+      },
+      "inmuebles": {
+        "archivo": "reto_oficial/data/inmuebles_prueba.csv",
+        "sha256": "566290f7fa555b0b86a84a812e7eae6f3ae5e297ac5c3dd41d96e539fb013c2b"
+      },
+      "transporte": {
+        "archivo": "reto_oficial/data/geo/transporte.geojson",
+        "sha256": "55128b4b264b963db779ddb662013a3782f6107b5af86afa23917778e3698187"
+      },
+      "equipamientos": {
+        "archivo": "reto_oficial/data/geo/equipamientos.geojson",
+        "sha256": "2a811f7af4b3c42ad32798b6a54949e7e952fd67081fdbb55fca6ddfbaa059f7"
+      },
+      "pot": {
+        "archivo": "data/geo/pot_tratamientos.geojson",
+        "sha256": null
+      }
+    }
+  },
+  "aviso": "Ficha descriptiva de mercado y entorno. No constituye evaluación ni recomendación de inversión, ni concepto jurídico sobre la norma urbanística."
+}

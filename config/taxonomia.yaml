@@ -1,0 +1,200 @@
+# TAXONOMIA unica de la captura: a que categoria va cada registro segun su fuente.
+# Los valores de GeoMedellin, Toponimia y establecimientos se listaron del servicio real el 20-nov-2026.
+version: "1.0"
+
+categorias:
+  educacion:           {etiqueta: "Educación",            color: "#3d6fb6", letra: "E"}
+  salud:               {etiqueta: "Salud",                color: "#c8553d", letra: "S"}
+  parques:             {etiqueta: "Parques",              color: "#4f8a5b", letra: "P"}
+  cultura:             {etiqueta: "Cultura",              color: "#8a5fa8", letra: "C"}
+  seguridad:           {etiqueta: "Seguridad",            color: "#0a1628", letra: "G"}
+  movilidad:           {etiqueta: "Movilidad",            color: "#d98b2b", letra: "M"}
+  abastecimiento:      {etiqueta: "Abastecimiento",       color: "#a98a1f", letra: "A"}
+  empresas:            {etiqueta: "Empresas",             color: "#2f8f9d", letra: "N"}
+  residencial:         {etiqueta: "Edificios y conjuntos", color: "#7fa598", letra: "R", oculta_al_abrir: true}
+  otros_equipamientos: {etiqueta: "Otros equipamientos",  color: "#6b7a8a", letra: "O"}
+
+# --- Google Places (New): cada lista es UNA solicitud; tipos verificados en la Tabla A ---
+google:
+  educacion:      [[preschool, primary_school, secondary_school, school, university]]
+  salud:          [[hospital, medical_clinic], [doctor, dentist, pharmacy, drugstore]]
+  parques:        [[park, city_park, playground, dog_park]]
+  cultura:        [[museum, library, art_gallery, cultural_center, performing_arts_theater]]
+  seguridad:      [[police, fire_station]]
+  movilidad:      [[subway_station, light_rail_station, train_station, bus_station, transit_station],
+                   [bus_stop, taxi_stand, parking]]
+  abastecimiento: [[supermarket, grocery_store, market, shopping_mall, convenience_store]]
+  empresas:       [[corporate_office, coworking_space, business_center, bank, insurance_agency, real_estate_agency]]
+google_conjunto: [apartment_complex, condominium_complex, housing_complex, apartment_building]
+
+# --- OpenStreetMap: [clave, valor, categoria, subtipo]. valor "*" = cualquier valor ---
+osm:
+  - [amenity, school, educacion, colegio]
+  - [amenity, kindergarten, educacion, preescolar]
+  - [amenity, college, educacion, educacion_superior]
+  - [amenity, university, educacion, universidad]
+  - [amenity, hospital, salud, hospital]
+  - [amenity, clinic, salud, clinica]
+  - [amenity, doctors, salud, consultorio]
+  - [amenity, dentist, salud, odontologia]
+  - [amenity, pharmacy, salud, farmacia]
+  - [leisure, park, parques, parque]
+  - [leisure, playground, parques, juegos_infantiles]
+  - [amenity, library, cultura, biblioteca]
+  - [amenity, theatre, cultura, teatro]
+  - [amenity, arts_centre, cultura, centro_cultural]
+  - [amenity, cinema, cultura, cine]
+  - [tourism, museum, cultura, museo]
+  - [tourism, gallery, cultura, galeria]
+  - [amenity, police, seguridad, policia]
+  - [amenity, fire_station, seguridad, bomberos]
+  - [railway, station, movilidad, estacion]
+  - [railway, tram_stop, movilidad, tranvia]
+  - [aerialway, station, movilidad, metrocable]
+  - [public_transport, station, movilidad, estacion]
+  - [amenity, bus_station, movilidad, terminal_buses]
+  - [highway, bus_stop, movilidad, paradero]
+  - [amenity, bicycle_rental, movilidad, bicicletas_publicas]
+  - [shop, supermarket, abastecimiento, supermercado]
+  - [shop, convenience, abastecimiento, tienda]
+  - [shop, greengrocer, abastecimiento, fruver]
+  - [shop, mall, abastecimiento, centro_comercial]
+  - [amenity, marketplace, abastecimiento, plaza_de_mercado]
+  - [amenity, bank, empresas, banco]
+  - [office, "*", empresas, oficina]
+osm_residencial:                 # solo con nombre: sirven para identificar el conjunto
+  - [building, apartments, residencial, edificio]
+  - [building, residential, residencial, edificio]
+  - [landuse, residential, residencial, urbanizacion]
+
+# --- GeoMedellin, inventario de equipamientos: campo 'tipo' -> [categoria, subtipo] ---
+# El codigo 'categoria' = 3 (Seguridad y Convivencia) manda sobre el tipo.
+geomed_categoria_seguridad: 3
+geomed_tipo:
+  "Educación básica":                                              [educacion, colegio]
+  "Educación Superior":                                            [educacion, educacion_superior]
+  "Ciudadelas Universitarias":                                     [educacion, universidad]
+  "Equipamientos de Educación para el trabajo y el desarrollo humano": [educacion, formacion_para_el_trabajo]
+  "Equipamientos de primer nivel de atención":                     [salud, primer_nivel]
+  "Equipamientos de segundo nivel de atención":                    [salud, segundo_nivel]
+  "Equipamientos de tercer nivel de atención":                     [salud, tercer_nivel]
+  "Casas de la cultura":                                           [cultura, casa_de_la_cultura]
+  "Centros de desarrollo cultural":                                [cultura, centro_cultural]
+  "Centros de promoción y divulgación artística y cultural":       [cultura, centro_cultural]
+  "Centros de salvaguarda del patrimonio y la memoria":            [cultura, patrimonio_y_memoria]
+  "Parques biblioteca":                                            [cultura, parque_biblioteca]
+  "Centros de Exposiciones y Convenciones":                        [cultura, exposiciones]
+  "Centros de innovación, investigación, ciencia y tecnología":    [cultura, ciencia_y_tecnologia]
+  "Equipamientos para el Transporte Público Colectivo y Masivo":   [movilidad, transporte_publico]
+  "Transporte por cable":                                          [movilidad, metrocable]
+  "Transporte de buses":                                           [movilidad, terminal_buses]
+  "Equipamientos para el Transporte aéreo":                        [movilidad, aeropuerto]
+  "Equipamientos para el Transporte ferroviario":                  [movilidad, ferroviario]
+  "Plazas o galerías de mercado":                                  [abastecimiento, plaza_de_mercado]
+  "Estaciones de bomberos":                                        [seguridad, bomberos]
+  "Equipamientos de Policía":                                      [seguridad, policia]
+  "Escenario deportivo-recreativo":                                [otros_equipamientos, deporte_y_recreacion]
+  "Equipamientos deportivos y recreativos no tradicionales":       [otros_equipamientos, deporte_y_recreacion]
+  "Unidad Deportiva":                                              [otros_equipamientos, deporte_y_recreacion]
+  "Unidad Deportiva Satélite":                                     [otros_equipamientos, deporte_y_recreacion]
+  "Equipamiento de Desarrollo Deportivo Integral":                 [otros_equipamientos, deporte_y_recreacion]
+  "Equipamiento Recreativo":                                       [otros_equipamientos, deporte_y_recreacion]
+  "Espacios para el culto":                                        [otros_equipamientos, culto]
+  "Lugares de apoyo al culto":                                     [otros_equipamientos, culto]
+  "Centros de integración barrial o unidades básicas de servicios": [otros_equipamientos, comunitario]
+  "Centros de atención y recuperación física, psíquica y social":  [otros_equipamientos, asistencia_social]
+  "Equipamientos para la Atención física y psicosocial":           [otros_equipamientos, asistencia_social]
+  "Albergues":                                                     [otros_equipamientos, asistencia_social]
+geomed_tipo_prefijos:            # si el tipo no esta arriba, se prueba por inicio de texto
+  "Equipamientos institucionales":           [otros_equipamientos, institucional]
+  "Equipamientos para la prestación":        [otros_equipamientos, servicios_publicos]
+  "Equipamientos para el aseo":              [otros_equipamientos, servicios_publicos]
+  "Cementerios":                             [otros_equipamientos, funerario]
+  "Morgues":                                 [otros_equipamientos, funerario]
+  "Distribución General de combustible":     [otros_equipamientos, combustible]
+
+# --- Toponimia del catastro: codigo 'tipo_sitio' -> [categoria, subtipo] ---
+toponimia:
+  "01": [residencial, edificio]
+  "02": [residencial, conjunto_residencial]
+  "29": [residencial, condominio]
+  "47": [residencial, propiedad_horizontal]
+  "Edificios": [residencial, edificio]
+  "03": [salud, clinica_hospital]
+  "11": [salud, farmacia]
+  "27": [salud, hogar_geriatrico]
+  "04": [educacion, colegio]
+  "05": [educacion, universidad]
+  "34": [educacion, instituto_educativo]
+  "06": [empresas, entidad_financiera]
+  "18": [empresas, notaria]
+  "42": [empresas, industria]
+  "44": [empresas, oficina]
+  "33": [empresas, bodega]
+  "08": [seguridad, cai]
+  "13": [seguridad, bomberos]
+  "14": [seguridad, policia]
+  "09": [abastecimiento, centro_comercial]
+  "21": [abastecimiento, supermercado]
+  "38": [abastecimiento, plaza_de_mercado]
+  "41": [abastecimiento, comercio]
+  "17": [cultura, museo]
+  "22": [cultura, teatro_cine]
+  "31": [cultura, biblioteca]
+  "37": [cultura, monumento]
+  "23": [movilidad, terminal_transporte]
+  "20": [movilidad, parqueadero]
+  "24": [parques, zona_verde]
+  "28": [parques, parque]
+  "25": [otros_equipamientos, deporte_y_recreacion]
+  "45": [otros_equipamientos, deporte_y_recreacion]
+  "32": [otros_equipamientos, deporte_y_recreacion]
+  "10": [otros_equipamientos, culto]
+  "16": [otros_equipamientos, hotel]
+  "07": [otros_equipamientos, bar_discoteca]
+  "19": [otros_equipamientos, restaurante]
+toponimia_defecto: [otros_equipamientos, toponimia]
+
+# --- Establecimientos (Industria y Comercio): CIIU Rev. 4 -> [categoria, subtipo]. Gana el prefijo mas largo ---
+ciiu:
+  "85":   [educacion, educacion_ciiu_85]
+  "86":   [salud, salud_humana_ciiu_86]
+  "87":   [salud, atencion_residencial_ciiu_87]
+  "4773": [salud, farmacia]
+  "4711": [abastecimiento, supermercado_o_tienda]
+  "4719": [abastecimiento, comercio_no_especializado]
+  "472":  [abastecimiento, alimentos_especializado]
+  "90":   [cultura, artes_y_espectaculos]
+  "9101": [cultura, biblioteca_archivo]
+  "9102": [cultura, museo]
+  "5914": [cultura, cine]
+ciiu_defecto: [empresas, establecimiento]
+grupos_actividad: {"01": industrial, "02": comercio, "03": servicios, "04": financiero, "05": otros}
+
+# --- Sistema de transporte masivo: campo 'linea' -> modo ---
+lineas_masivo:
+  "Línea A": metro
+  "Línea B": metro
+  "Línea T": tranvia
+  "Línea TA": tranvia
+  "Línea K": metrocable
+  "Línea J": metrocable
+  "Línea L": metrocable
+  "Línea H": metrocable
+  "Línea M": metrocable
+  "Línea P": metrocable
+  "Línea 1": metroplus
+  "Línea 2": metroplus
+  "Línea O": metroplus
+linea_masivo_defecto: transporte_masivo
+
+# --- Normalizacion de nombres ---
+siglas: [IE, IPS, EPS, ESE, CAI, SENA, UPB, EAFIT, CES, ITM, EPM, UVA, INDER, CEDEZO, SAS, SA, LTDA,
+         UNAL, UDEA, POT, PH, RPH, CC, UNE, EDU, MAMM, CDI, DAP, APH, ICBF, INEM, CEFA, USB, UCC, ESU]
+minusculas: [de, del, en, y, e, a, al, por, para, con]   # siempre en minuscula dentro del nombre
+articulos: [la, las, los, el]                            # en minuscula solo despues de una preposicion
+genericos_clave:                # se quitan al comparar nombres entre fuentes
+  [institucion, educativa, colegio, escuela, sede, seccion, ie, centro, parque, edificio, conjunto,
+   residencial, urbanizacion, unidad, clinica, hospital, drogueria, farmacia, estacion, cai,
+   biblioteca, supermercado, tienda, universidad, universitaria, fundacion, corporacion,
+   de, del, la, las, los, el, y, e, en, sas, sa, ltda, ph]

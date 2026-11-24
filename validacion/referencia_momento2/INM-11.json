@@ -1,0 +1,213 @@
+{
+  "id_inmueble": "INM-11",
+  "inmueble": {
+    "direccion": null,
+    "barrio": "ditaires",
+    "municipio": "itagui",
+    "zona": "ditaires_itagui",
+    "area_m2": 63.0,
+    "estado_texto": "SIN REMODELAR (OBRA NEGRA)",
+    "estado": "por_remodelar",
+    "coordenadas": {
+      "lat": 6.168608,
+      "lon": -75.627492,
+      "precision": "barrio",
+      "fuente": "OSM way/553803506 (Parque Ditaires)"
+    }
+  },
+  "mercado": {
+    "estado_referencia": "por_remodelar",
+    "precio_m2": {
+      "n": 3,
+      "mediana": 5625000,
+      "promedio": 5628968,
+      "minimo": 4833333,
+      "maximo": 6428571,
+      "desviacion": 797626,
+      "coef_variacion": 0.1417
+    },
+    "confianza": {
+      "nivel": "media",
+      "motivo": "3 comparables (mínimo 3) y coeficiente de variación 14.17% (máximo 25%)",
+      "alcance": "Mide calidad y suficiencia de los datos. No mide rentabilidad ni conveniencia de compra."
+    },
+    "comparables": [
+      {
+        "origen": "factibilidad_proyecto2.xlsx:SECTORIAL:20",
+        "id_anuncio": "fincaraiz:193263982",
+        "fuente": "fincaraiz",
+        "area_m2": 60.0,
+        "precio": 290000000,
+        "precio_m2": 4833333,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_proyecto2.xlsx:SECTORIAL:12",
+        "id_anuncio": "metrocuadrado:17017-M5712498",
+        "fuente": "metrocuadrado",
+        "area_m2": 64.0,
+        "precio": 360000000,
+        "precio_m2": 5625000,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_proyecto2.xlsx:SECTORIAL:4",
+        "id_anuncio": "fincaraiz:192958554",
+        "fuente": "fincaraiz",
+        "area_m2": 70.0,
+        "precio": 450000000,
+        "precio_m2": 6428571,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      }
+    ],
+    "precio_m2_por_estado_en_zona": {
+      "remodelado": {
+        "n": 12,
+        "mediana": 6997154
+      },
+      "habitable": {
+        "n": 0,
+        "mediana": null
+      },
+      "por_remodelar": {
+        "n": 4,
+        "mediana": 5796371
+      }
+    },
+    "base_referencia": "pedido",
+    "mezcla_pedido_cierre": false,
+    "precio_m2_por_tipo": {
+      "pedido": {
+        "n": 3,
+        "mediana": 5625000,
+        "promedio": 5628968,
+        "minimo": 4833333,
+        "maximo": 6428571,
+        "desviacion": 797626,
+        "coef_variacion": 0.1417
+      },
+      "cierre": {
+        "n": 0,
+        "mediana": null,
+        "promedio": null,
+        "minimo": null,
+        "maximo": null,
+        "desviacion": null,
+        "coef_variacion": null
+      }
+    },
+    "criterio_comparables": {
+      "aplicada": false,
+      "activa": false,
+      "minimo": 3,
+      "tolerancia_area_base": 0.3,
+      "n_base": 3,
+      "pasos_aplicados": [],
+      "tolerancia_area_final": 0.3,
+      "n_final": 3,
+      "rango_area_m2": [
+        44.1,
+        81.9
+      ],
+      "grupos_propios_excluidos": [
+        "factibilidad_proyecto2.xlsx:SECTORIAL:16"
+      ]
+    }
+  },
+  "calidad_datos_zona": {
+    "anuncios_en_zona": 19,
+    "duplicados_eliminados": 2,
+    "anuncios_unicos": 17,
+    "anuncios_invalidos": {},
+    "anuncios_validos": 17,
+    "grupos_duplicados_ambiguos": 1,
+    "validos_absorbidos_por_representante_invalido": 0
+  },
+  "entorno": {
+    "radio_busqueda_m": 800,
+    "estacion_mas_cercana": {
+      "nombre": "Sabaneta",
+      "sistema": "metro",
+      "distancia_m": 1743
+    },
+    "estaciones_en_radio": 0,
+    "equipamientos_en_radio": {
+      "educacion": 13,
+      "salud": 3,
+      "parques": 1,
+      "abastecimiento": 0,
+      "seguridad": 3,
+      "cultura": 1
+    },
+    "aproximado": true,
+    "metodo_distancia": "haversine"
+  },
+  "norma": {
+    "tratamiento_pot": null,
+    "estado": "no_disponible",
+    "motivo": "La capa POT cubre solo: medellin",
+    "nota": "Cruce informativo con la capa entregada. No constituye concepto jurídico ni urbanístico."
+  },
+  "datos_faltantes": [
+    "direccion",
+    "coordenadas_exactas",
+    "fecha_publicacion_comparables",
+    "precios_de_cierre"
+  ],
+  "metadatos": {
+    "version_parametros": "1.0",
+    "fecha_generacion": "2026-11-15",
+    "fecha_capas_osm": "2026-11-13T23:03:06Z",
+    "fuentes": [
+      "data/anuncios_muestra.csv",
+      "OpenStreetMap (ODbL)"
+    ]
+  },
+  "trazabilidad": {
+    "version_pipeline": "0.3.0",
+    "hash_parametros": "750c8deb8dc81a35438c01886d24feac9c9a0f4df1a6834aa7f4bc04afbf7c88",
+    "regla_deduplicacion": {
+      "claves_sin_id": [
+        "zona",
+        "area_m2",
+        "precio"
+      ],
+      "representante": "primera_fila"
+    },
+    "control_distancia": {
+      "crs": "EPSG:9377",
+      "estacion_mas_cercana": "Sabaneta",
+      "distancia_estacion_m": 1739,
+      "diferencia_m": -4,
+      "estaciones_en_radio": 0,
+      "equipamientos_en_radio": 21,
+      "equipamientos_que_cambian": 0
+    },
+    "archivos": {
+      "anuncios": {
+        "archivo": "reto_oficial/data/anuncios_muestra.csv",
+        "sha256": "79245590ed3a2e945f383be459acfe384417c02308325c9f37f3b895b24ff196"
+      },
+      "inmuebles": {
+        "archivo": "reto_oficial/data/inmuebles_prueba.csv",
+        "sha256": "566290f7fa555b0b86a84a812e7eae6f3ae5e297ac5c3dd41d96e539fb013c2b"
+      },
+      "transporte": {
+        "archivo": "reto_oficial/data/geo/transporte.geojson",
+        "sha256": "55128b4b264b963db779ddb662013a3782f6107b5af86afa23917778e3698187"
+      },
+      "equipamientos": {
+        "archivo": "reto_oficial/data/geo/equipamientos.geojson",
+        "sha256": "2a811f7af4b3c42ad32798b6a54949e7e952fd67081fdbb55fca6ddfbaa059f7"
+      },
+      "pot": {
+        "archivo": "data/geo/pot_tratamientos.geojson",
+        "sha256": null
+      }
+    }
+  },
+  "aviso": "Ficha descriptiva de mercado y entorno. No constituye evaluación ni recomendación de inversión, ni concepto jurídico sobre la norma urbanística."
+}

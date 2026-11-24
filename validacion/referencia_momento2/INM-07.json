@@ -1,0 +1,233 @@
+{
+  "id_inmueble": "INM-07",
+  "inmueble": {
+    "direccion": null,
+    "barrio": "la castellana",
+    "municipio": "medellin",
+    "zona": "castellana_laureles",
+    "area_m2": 90.0,
+    "estado_texto": "HABITABLE POR REMODELAR",
+    "estado": "habitable",
+    "coordenadas": {
+      "lat": 6.240226,
+      "lon": -75.605418,
+      "precision": "barrio",
+      "fuente": "OSM node/405051001 (La Castellana)"
+    }
+  },
+  "mercado": {
+    "estado_referencia": "habitable",
+    "precio_m2": {
+      "n": 5,
+      "mediana": 6483516,
+      "promedio": 6672757,
+      "minimo": 5487805,
+      "maximo": 8900000,
+      "desviacion": 1314425,
+      "coef_variacion": 0.197
+    },
+    "confianza": {
+      "nivel": "media",
+      "motivo": "5 comparables (mínimo 3) y coeficiente de variación 19.70% (máximo 25%)",
+      "alcance": "Mide calidad y suficiencia de los datos. No mide rentabilidad ni conveniencia de compra."
+    },
+    "comparables": [
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:16",
+        "id_anuncio": "fincaraiz:193329233",
+        "fuente": "fincaraiz",
+        "area_m2": 82.0,
+        "precio": 450000000,
+        "precio_m2": 5487805,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:15",
+        "id_anuncio": "fincaraiz:193226367",
+        "fuente": "fincaraiz",
+        "area_m2": 82.0,
+        "precio": 490000000,
+        "precio_m2": 5975610,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:5",
+        "id_anuncio": "fincaraiz:192971383",
+        "fuente": "fincaraiz",
+        "area_m2": 91.0,
+        "precio": 590000000,
+        "precio_m2": 6483516,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:6",
+        "id_anuncio": "fincaraiz:193663348",
+        "fuente": "fincaraiz",
+        "area_m2": 89.0,
+        "precio": 580000000,
+        "precio_m2": 6516854,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:14",
+        "id_anuncio": "fincaraiz:193631554",
+        "fuente": "fincaraiz",
+        "area_m2": 100.0,
+        "precio": 890000000,
+        "precio_m2": 8900000,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      }
+    ],
+    "precio_m2_por_estado_en_zona": {
+      "remodelado": {
+        "n": 7,
+        "mediana": 6969697
+      },
+      "habitable": {
+        "n": 5,
+        "mediana": 6483516
+      },
+      "por_remodelar": {
+        "n": 0,
+        "mediana": null
+      }
+    },
+    "base_referencia": "pedido",
+    "mezcla_pedido_cierre": false,
+    "precio_m2_por_tipo": {
+      "pedido": {
+        "n": 5,
+        "mediana": 6483516,
+        "promedio": 6672757,
+        "minimo": 5487805,
+        "maximo": 8900000,
+        "desviacion": 1314425,
+        "coef_variacion": 0.197
+      },
+      "cierre": {
+        "n": 0,
+        "mediana": null,
+        "promedio": null,
+        "minimo": null,
+        "maximo": null,
+        "desviacion": null,
+        "coef_variacion": null
+      }
+    },
+    "criterio_comparables": {
+      "aplicada": false,
+      "activa": false,
+      "minimo": 3,
+      "tolerancia_area_base": 0.3,
+      "n_base": 5,
+      "pasos_aplicados": [],
+      "tolerancia_area_final": 0.3,
+      "n_final": 5,
+      "rango_area_m2": [
+        63.0,
+        117.0
+      ],
+      "grupos_propios_excluidos": [
+        "factibilidad_castellana.xlsx:SECTORIAL:13"
+      ]
+    }
+  },
+  "calidad_datos_zona": {
+    "anuncios_en_zona": 16,
+    "duplicados_eliminados": 3,
+    "anuncios_unicos": 13,
+    "anuncios_invalidos": {},
+    "anuncios_validos": 13,
+    "grupos_duplicados_ambiguos": 0,
+    "validos_absorbidos_por_representante_invalido": 0
+  },
+  "entorno": {
+    "radio_busqueda_m": 800,
+    "estacion_mas_cercana": {
+      "nombre": "Santa Lucía",
+      "sistema": "metro",
+      "distancia_m": 1994
+    },
+    "estaciones_en_radio": 0,
+    "equipamientos_en_radio": {
+      "educacion": 23,
+      "salud": 6,
+      "parques": 11,
+      "abastecimiento": 13,
+      "seguridad": 1,
+      "cultura": 5
+    },
+    "aproximado": true,
+    "metodo_distancia": "haversine"
+  },
+  "norma": {
+    "tratamiento_pot": null,
+    "estado": "pendiente_capa",
+    "motivo": "Falta el archivo data/geo/pot_tratamientos.geojson",
+    "nota": "Cruce informativo con la capa entregada. No constituye concepto jurídico ni urbanístico."
+  },
+  "datos_faltantes": [
+    "direccion",
+    "coordenadas_exactas",
+    "fecha_publicacion_comparables",
+    "precios_de_cierre"
+  ],
+  "metadatos": {
+    "version_parametros": "1.0",
+    "fecha_generacion": "2026-11-15",
+    "fecha_capas_osm": "2026-11-13T23:03:06Z",
+    "fuentes": [
+      "data/anuncios_muestra.csv",
+      "OpenStreetMap (ODbL)"
+    ]
+  },
+  "trazabilidad": {
+    "version_pipeline": "0.3.0",
+    "hash_parametros": "750c8deb8dc81a35438c01886d24feac9c9a0f4df1a6834aa7f4bc04afbf7c88",
+    "regla_deduplicacion": {
+      "claves_sin_id": [
+        "zona",
+        "area_m2",
+        "precio"
+      ],
+      "representante": "primera_fila"
+    },
+    "control_distancia": {
+      "crs": "EPSG:9377",
+      "estacion_mas_cercana": "Santa Lucía",
+      "distancia_estacion_m": 1984,
+      "diferencia_m": -10,
+      "estaciones_en_radio": 0,
+      "equipamientos_en_radio": 59,
+      "equipamientos_que_cambian": 0
+    },
+    "archivos": {
+      "anuncios": {
+        "archivo": "reto_oficial/data/anuncios_muestra.csv",
+        "sha256": "79245590ed3a2e945f383be459acfe384417c02308325c9f37f3b895b24ff196"
+      },
+      "inmuebles": {
+        "archivo": "reto_oficial/data/inmuebles_prueba.csv",
+        "sha256": "566290f7fa555b0b86a84a812e7eae6f3ae5e297ac5c3dd41d96e539fb013c2b"
+      },
+      "transporte": {
+        "archivo": "reto_oficial/data/geo/transporte.geojson",
+        "sha256": "55128b4b264b963db779ddb662013a3782f6107b5af86afa23917778e3698187"
+      },
+      "equipamientos": {
+        "archivo": "reto_oficial/data/geo/equipamientos.geojson",
+        "sha256": "2a811f7af4b3c42ad32798b6a54949e7e952fd67081fdbb55fca6ddfbaa059f7"
+      },
+      "pot": {
+        "archivo": "data/geo/pot_tratamientos.geojson",
+        "sha256": null
+      }
+    }
+  },
+  "aviso": "Ficha descriptiva de mercado y entorno. No constituye evaluación ni recomendación de inversión, ni concepto jurídico sobre la norma urbanística."
+}

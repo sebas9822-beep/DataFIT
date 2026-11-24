@@ -1,0 +1,14 @@
+.env
+data/*.db
+data/*.db-*
+data/_claude_cli/
+fichas_clientes/
+salidas/*
+!salidas/.gitkeep
+__pycache__/
+*.pyc
+.pytest_tmp/
+.pytest_cache/
+respaldos/
+config/historial/
+.ruff_cache/

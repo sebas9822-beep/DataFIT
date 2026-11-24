@@ -1,0 +1,243 @@
+{
+  "id_inmueble": "INM-08",
+  "inmueble": {
+    "direccion": null,
+    "barrio": "laureles",
+    "municipio": "medellin",
+    "zona": "castellana_laureles",
+    "area_m2": 92.0,
+    "estado_texto": "REMODELADO",
+    "estado": "remodelado",
+    "coordenadas": {
+      "lat": 6.242,
+      "lon": -75.595833,
+      "precision": "barrio",
+      "fuente": "OSM node/375908075 (Laureles)"
+    }
+  },
+  "mercado": {
+    "estado_referencia": "remodelado",
+    "precio_m2": {
+      "n": 6,
+      "mediana": 7314636,
+      "promedio": 7506809,
+      "minimo": 6111111,
+      "maximo": 9111111,
+      "desviacion": 1207683,
+      "coef_variacion": 0.1609
+    },
+    "confianza": {
+      "nivel": "media",
+      "motivo": "6 comparables (mínimo 3) y coeficiente de variación 16.09% (máximo 25%)",
+      "alcance": "Mide calidad y suficiencia de los datos. No mide rentabilidad ni conveniencia de compra."
+    },
+    "comparables": [
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:7",
+        "id_anuncio": "fincaraiz:193632316",
+        "fuente": "fincaraiz",
+        "area_m2": 90.0,
+        "precio": 550000000,
+        "precio_m2": 6111111,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:2",
+        "id_anuncio": "fincaraiz:10710482",
+        "fuente": "fincaraiz",
+        "area_m2": 94.0,
+        "precio": 610000000,
+        "precio_m2": 6489362,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:3",
+        "id_anuncio": "fincaraiz:193287983",
+        "fuente": "fincaraiz",
+        "area_m2": 99.0,
+        "precio": 690000000,
+        "precio_m2": 6969697,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:8",
+        "id_anuncio": "fincaraiz:192987663",
+        "fuente": "fincaraiz",
+        "area_m2": 94.0,
+        "precio": 720000000,
+        "precio_m2": 7659574,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:9",
+        "id_anuncio": "fincaraiz:193440669",
+        "fuente": "fincaraiz",
+        "area_m2": 100.0,
+        "precio": 870000000,
+        "precio_m2": 8700000,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      },
+      {
+        "origen": "factibilidad_castellana.xlsx:SECTORIAL:17",
+        "id_anuncio": "fincaraiz:191578699",
+        "fuente": "fincaraiz",
+        "area_m2": 90.0,
+        "precio": 820000000,
+        "precio_m2": 9111111,
+        "tipo_precio": "pedido",
+        "en_referencia": true
+      }
+    ],
+    "precio_m2_por_estado_en_zona": {
+      "remodelado": {
+        "n": 6,
+        "mediana": 7314636
+      },
+      "habitable": {
+        "n": 6,
+        "mediana": 6463980
+      },
+      "por_remodelar": {
+        "n": 0,
+        "mediana": null
+      }
+    },
+    "base_referencia": "pedido",
+    "mezcla_pedido_cierre": false,
+    "precio_m2_por_tipo": {
+      "pedido": {
+        "n": 6,
+        "mediana": 7314636,
+        "promedio": 7506809,
+        "minimo": 6111111,
+        "maximo": 9111111,
+        "desviacion": 1207683,
+        "coef_variacion": 0.1609
+      },
+      "cierre": {
+        "n": 0,
+        "mediana": null,
+        "promedio": null,
+        "minimo": null,
+        "maximo": null,
+        "desviacion": null,
+        "coef_variacion": null
+      }
+    },
+    "criterio_comparables": {
+      "aplicada": false,
+      "activa": false,
+      "minimo": 3,
+      "tolerancia_area_base": 0.3,
+      "n_base": 6,
+      "pasos_aplicados": [],
+      "tolerancia_area_final": 0.3,
+      "n_final": 6,
+      "rango_area_m2": [
+        64.4,
+        119.6
+      ],
+      "grupos_propios_excluidos": [
+        "factibilidad_castellana.xlsx:SECTORIAL:4"
+      ]
+    }
+  },
+  "calidad_datos_zona": {
+    "anuncios_en_zona": 16,
+    "duplicados_eliminados": 3,
+    "anuncios_unicos": 13,
+    "anuncios_invalidos": {},
+    "anuncios_validos": 13,
+    "grupos_duplicados_ambiguos": 0,
+    "validos_absorbidos_por_representante_invalido": 0
+  },
+  "entorno": {
+    "radio_busqueda_m": 800,
+    "estacion_mas_cercana": {
+      "nombre": "Estadio",
+      "sistema": "metro",
+      "distancia_m": 1516
+    },
+    "estaciones_en_radio": 0,
+    "equipamientos_en_radio": {
+      "educacion": 20,
+      "salud": 25,
+      "parques": 16,
+      "abastecimiento": 14,
+      "seguridad": 1,
+      "cultura": 2
+    },
+    "aproximado": true,
+    "metodo_distancia": "haversine"
+  },
+  "norma": {
+    "tratamiento_pot": null,
+    "estado": "pendiente_capa",
+    "motivo": "Falta el archivo data/geo/pot_tratamientos.geojson",
+    "nota": "Cruce informativo con la capa entregada. No constituye concepto jurídico ni urbanístico."
+  },
+  "datos_faltantes": [
+    "direccion",
+    "coordenadas_exactas",
+    "fecha_publicacion_comparables",
+    "precios_de_cierre"
+  ],
+  "metadatos": {
+    "version_parametros": "1.0",
+    "fecha_generacion": "2026-11-15",
+    "fecha_capas_osm": "2026-11-13T23:03:06Z",
+    "fuentes": [
+      "data/anuncios_muestra.csv",
+      "OpenStreetMap (ODbL)"
+    ]
+  },
+  "trazabilidad": {
+    "version_pipeline": "0.3.0",
+    "hash_parametros": "750c8deb8dc81a35438c01886d24feac9c9a0f4df1a6834aa7f4bc04afbf7c88",
+    "regla_deduplicacion": {
+      "claves_sin_id": [
+        "zona",
+        "area_m2",
+        "precio"
+      ],
+      "representante": "primera_fila"
+    },
+    "control_distancia": {
+      "crs": "EPSG:9377",
+      "estacion_mas_cercana": "Estadio",
+      "distancia_estacion_m": 1511,
+      "diferencia_m": -5,
+      "estaciones_en_radio": 0,
+      "equipamientos_en_radio": 78,
+      "equipamientos_que_cambian": 0
+    },
+    "archivos": {
+      "anuncios": {
+        "archivo": "reto_oficial/data/anuncios_muestra.csv",
+        "sha256": "79245590ed3a2e945f383be459acfe384417c02308325c9f37f3b895b24ff196"
+      },
+      "inmuebles": {
+        "archivo": "reto_oficial/data/inmuebles_prueba.csv",
+        "sha256": "566290f7fa555b0b86a84a812e7eae6f3ae5e297ac5c3dd41d96e539fb013c2b"
+      },
+      "transporte": {
+        "archivo": "reto_oficial/data/geo/transporte.geojson",
+        "sha256": "55128b4b264b963db779ddb662013a3782f6107b5af86afa23917778e3698187"
+      },
+      "equipamientos": {
+        "archivo": "reto_oficial/data/geo/equipamientos.geojson",
+        "sha256": "2a811f7af4b3c42ad32798b6a54949e7e952fd67081fdbb55fca6ddfbaa059f7"
+      },
+      "pot": {
+        "archivo": "data/geo/pot_tratamientos.geojson",
+        "sha256": null
+      }
+    }
+  },
+  "aviso": "Ficha descriptiva de mercado y entorno. No constituye evaluación ni recomendación de inversión, ni concepto jurídico sobre la norma urbanística."
+}

@@ -1,0 +1,296 @@
+# CATALOGO DE FUENTES ("bases de datos definidas"). Agregar una capa ArcGIS aqui la suma a la captura
+# sin tocar codigo. Servicios y campos verificados en vivo el 20-nov-2026 contra el servidor de mapas
+# de la Alcaldia de Medellin (https://www.medellin.gov.co/servidormapas/rest/services).
+version: "1.0"
+
+fuentes:
+  catastro:
+    nombre: "Catastro de Medellín"
+    capa_concepto: C2
+    tipo: oficial_catastro
+    metodo_acceso: api_rest
+    cobertura: medellin
+    activa: true
+    licencia: "Datos abiertos GeoMedellín (CC BY-SA). Citar: Subsecretaría de Catastro – Alcaldía de Medellín. No vale como certificación catastral."
+  geomedellin:
+    nombre: "GeoMedellín (capas oficiales)"
+    capa_concepto: C3
+    tipo: oficial_territorio
+    metodo_acceso: api_rest
+    cobertura: medellin
+    activa: true
+    licencia: "Datos abiertos GeoMedellín (CC BY-SA). Citar la dependencia productora de cada capa."
+  osm:
+    nombre: "OpenStreetMap (Overpass)"
+    capa_concepto: C3
+    tipo: osm
+    metodo_acceso: api_rest
+    cobertura: valle_aburra
+    activa: true
+    licencia: "ODbL – © colaboradores de OpenStreetMap (atribución; compartir igual si se publica la base derivada)."
+  google:
+    nombre: "Google Places (New)"
+    capa_concepto: C3
+    tipo: comercial
+    metodo_acceso: api_rest
+    cobertura: global
+    activa: true                # solo corre si hay GOOGLE_SERVER_KEY en .env
+    requiere_llave: GOOGLE_SERVER_KEY
+    licencia: "Google Maps Platform: place_id permanente; lat/lng 30 días; el nombre no se guarda."
+  registro_ic:
+    nombre: "Registro de Industria y Comercio (establecimientos activos)"
+    capa_concepto: C3
+    tipo: oficial_registro
+    metodo_acceso: api_rest
+    cobertura: medellin
+    activa: true
+    licencia: "Servicio público de la Alcaldía de Medellín (Hacienda – Industria y Comercio). Citar la fuente."
+  oime:
+    nombre: "OIME – Observatorio Inmobiliario de Medellín (ofertas 2023)"
+    capa_concepto: C1
+    tipo: oficial_oferta
+    metodo_acceso: api_rest
+    cobertura: medellin
+    activa: true
+    licencia: "Servicio público de la Subsecretaría de Catastro. Oferta histórica (2023): precio pedido, no de cierre. Confirmar condiciones de uso antes de publicar (decisión A-01)."
+  portales:
+    nombre: "Portales de anuncios (Fincaraíz, Metrocuadrado, Ciencuadras…)"
+    capa_concepto: C1
+    tipo: portal
+    metodo_acceso: captura_web
+    cobertura: nacional
+    activa: false               # no hay conector propio: la lectura la hace el RPA con Claude Code (config/inmobiliarias.yaml)
+    licencia: "Anuncios públicos de cada sitio. Precio pedido. Términos de uso de cada sitio por revisar (decisión A-08); Ciencuadras prohíbe robots y bases derivadas y no se consulta."
+
+# La lista de inmobiliarias y portales que lee el RPA está en config/inmobiliarias.yaml (decisiones DU-23 y DU-27).
+
+# ---------------------------------------------------------------------------------------------
+# Contexto del punto (predio y norma). Consultas punto-en-poligono o por CBML.
+# ---------------------------------------------------------------------------------------------
+capas_predio:
+  barrio:        {servicio: ServiciosCatastro/Base_Catastral, capa: 1}
+  lote:          {servicio: ServiciosCatastro/ConsultaOperadorCatastral, capa: 7}
+  lote_respaldo: {servicio: ServiciosCatastro/Base_Catastral, capa: 3}
+  construccion:  {servicio: ServiciosCatastro/Base_Catastral, capa: 5}
+  nomenclatura:  {servicio: ServiciosCatastro/ConsultaOperadorCatastral, capa: 1}
+  toponimia:     {servicio: ServiciosCatastro/ConsultaOperadorCatastral, capa: 0}
+  zge:           {servicio: ServiciosCatastro/Base_Catastral, capa: 12}
+  tratamiento:   {servicio: ordenamiento_ter/VM_22_Tratamientos_Urbanos, capa: 0}
+  uso_suelo:     {servicio: ordenamiento_ter/VM_23_Uso_General_Suelo_Urbano, capa: 2}
+  bic:           {servicio: cultura/VC_BIC_Patrimonial, capa: 0}
+  bic_influencia: {servicio: cultura/VC_BIC_Patrimonial, capa: 1}
+  cuadrante:     {servicio: seguridad_defensa/VM_Policia_MAP5, capa: 2}
+  estaciones:    {servicio: transporte/VC_Infraest_Gestion_Transporte, capa: 11}
+
+# ---------------------------------------------------------------------------------------------
+# Barrido de entorno (radio de la captura). Un registro por capa.
+#   clasificador: fija | geomed_equipamientos | toponimia | ciiu | estaciones
+#   nombre / subtipo: campos candidatos, en orden
+#   dedupe: participa en el enlace de duplicados entre fuentes · ia: puede ir a Claude
+#   mapa: true = lugar que se pinta y cuenta en su categoria; false = capa masiva que se guarda
+#         completa pero se resume aparte (no infla las categorias)
+# ---------------------------------------------------------------------------------------------
+capas_entorno:
+  - id: equipamientos
+    fuente: geomedellin
+    etiqueta: "Inventario de equipamientos (POT)"
+    servicio: mapas_nacionales/VC_Infraestructura_Fisica
+    capa: 1
+    clasificador: geomed_equipamientos
+    nombre: [nombre]
+    subtipo: [tipo]
+    atributos: [categoria, nivel, orden, cbml, nom_barrio, cod_comuna, fecha_actualizacion, fuente]
+    fecha: fecha_actualizacion
+    activa: true
+    dedupe: true
+    ia: true
+    mapa: true
+
+  - id: espacio_publico
+    fuente: geomedellin
+    etiqueta: "Espacio público de esparcimiento y encuentro"
+    servicio: mapas_nacionales/VC_Infraestructura_Fisica
+    capa: 2
+    clasificador: fija
+    categoria: parques
+    nombre: [nombre]
+    subtipo: [funcion, subcategor]
+    subtipo_defecto: espacio_publico
+    atributos: [categoria, orden, dominio, funcion, nivel, subcategor, cbml, nom_barrio, cod_comuna]
+    activa: true
+    dedupe: true
+    ia: true
+    mapa: true
+
+  - id: sedes_educativas
+    fuente: geomedellin
+    etiqueta: "Sedes educativas (Secretaría de Educación)"
+    servicio: educacion/VC_Sedes
+    capa: 0
+    clasificador: fija
+    categoria: educacion
+    nombre: [sede_educa, nombre_est]
+    subtipo_defecto: colegio
+    atributos: [nombre_est, sector, servicio, estado, vigencia, clasificac, direccion, dane_sede, cbml, nombre_bar]
+    activa: true
+    dedupe: true
+    ia: true
+    mapa: true
+
+  - id: educacion_superior
+    fuente: geomedellin
+    etiqueta: "Instituciones de educación superior"
+    servicio: educacion/VC_Sedes
+    capa: 1
+    clasificador: fija
+    categoria: educacion
+    nombre: [institucion]
+    subtipo: [tipo]
+    subtipo_defecto: educacion_superior
+    atributos: [codigo, sector, tipo, direccion, cbml, nombre_barrio]
+    activa: true
+    dedupe: true
+    ia: true
+    mapa: true
+
+  - id: estaciones_masivo
+    fuente: geomedellin
+    etiqueta: "Estaciones del sistema de transporte masivo"
+    servicio: transporte/VC_Infraest_Gestion_Transporte
+    capa: 11
+    clasificador: estaciones
+    categoria: movilidad
+    nombre: [nombre]
+    atributos: [linea, estado, tipo, tipo_est, fecha_actualizacion]
+    activa: true
+    dedupe: true
+    ia: false
+    mapa: true
+
+  - id: paradas_bus
+    fuente: geomedellin
+    etiqueta: "Paraderos de transporte público"
+    servicio: transporte/VC_Infraest_Gestion_Transporte
+    capa: 0
+    clasificador: fija
+    categoria: movilidad
+    subtipo_defecto: paradero
+    clave: [id_paradero]
+    unico_por: id_paradero        # la capa trae una fila por paradero y ruta
+    nombre: [direccion]
+    atributos: [id_paradero, tipo_parada, nombre_ruta, sistema_ruta, direccion]
+    activa: true
+    dedupe: false
+    ia: false
+    mapa: true
+
+  - id: cicloparqueaderos
+    fuente: geomedellin
+    etiqueta: "Cicloparqueaderos"
+    servicio: transporte/VM_Movilidad_Humana
+    capa: 3
+    clasificador: fija
+    categoria: movilidad
+    subtipo_defecto: cicloparqueadero
+    nombre: [direccion]
+    atributos: [ente_constructor, comuna, cantidad_mod]
+    activa: true
+    dedupe: false
+    ia: false
+    mapa: true
+
+  - id: camaras_cctv
+    fuente: geomedellin
+    etiqueta: "Cámaras de seguridad (CCTV)"
+    servicio: seguridad_defensa/VM_Policia_MAP5
+    capa: 10
+    clasificador: fija
+    categoria: seguridad
+    subtipo_defecto: camara_cctv
+    clave: [id_camara]
+    nombre: []
+    atributos: [id_camara, estado, tipo_camara, clasificacion, barrio]
+    activa: true
+    dedupe: false
+    ia: false
+    mapa: false                   # se cuentan y se guardan; no se pintan una por una
+
+  - id: bibliotecas
+    fuente: geomedellin
+    etiqueta: "Red de bibliotecas"
+    servicio: cultura/VM_Red_Bibliotecas
+    capa: 0
+    clasificador: fija
+    categoria: cultura
+    subtipo_defecto: biblioteca
+    nombre: [nombre]
+    subtipo: [tipo]
+    atributos: [ubicacion, tipo, comuna, barrio]
+    activa: true
+    dedupe: true
+    ia: true
+    mapa: true
+
+  - id: patrimonio_bic
+    fuente: geomedellin
+    etiqueta: "Bienes de interés cultural (BIC)"
+    servicio: cultura/VC_BIC_Patrimonial
+    capa: 0
+    clasificador: fija
+    categoria: cultura
+    subtipo_defecto: bien_de_interes_cultural
+    nombre: [nombre]
+    atributos: [grupo, subgrupo, tipo, direccion, nombre_sector, fecha_actualizacion]
+    activa: true
+    dedupe: true
+    ia: true
+    mapa: true
+
+  - id: toponimia
+    fuente: catastro
+    etiqueta: "Toponimia del catastro (nombres de edificios, conjuntos y sitios)"
+    servicio: ServiciosCatastro/ConsultaOperadorCatastral
+    capa: 0
+    clasificador: toponimia
+    nombre: [nombre]
+    atributos: [tipo_sitio, cbml]
+    activa: true
+    dedupe: true
+    ia: true
+    mapa: true
+
+  - id: establecimientos
+    fuente: registro_ic
+    etiqueta: "Establecimientos de industria y comercio (activos)"
+    servicio: ccio_ind_turism/VA_Establecimiento_Comercial
+    capa: 6
+    donde: "accion='A' AND fecha_cancelacion IS NULL"
+    clasificador: ciiu
+    clave: [id_contrato, objectid]
+    unico_por: id_contrato        # la capa repite filas identicas del mismo contrato (99 en 14.664, 21-nov-2026)
+    nombre: [nombre_establecimiento]
+    # No se pide fecha_inicio: hay filas con una fecha que el servidor no logra entregar y cada una
+    # tumba la pagina completa (verificado el 21-nov-2026, p. ej. objectid 304500). Ver A-11.
+    # fecha_registro es la fecha de carga del lote, no del establecimiento: tampoco se pide.
+    campos: [objectid, id_contrato, nombre_establecimiento, dir_establecimiento,
+             codigociiu, grupo_actividad, cbml, nombre_barrio, longitud, latitud]
+    atributos: [codigociiu, grupo_actividad, dir_establecimiento, cbml, nombre_barrio]
+    max_registros: 25000
+    activa: true
+    dedupe: false                 # capa masiva: se clasifica por CIIU y se resume
+    ia: false
+    mapa: false
+
+  - id: oferta_oime
+    fuente: oime
+    etiqueta: "Ofertas inmobiliarias OIME (internet, 2023)"
+    servicio: vivienda_ciudad_terri/VM_Oferta_Comercial_Oime
+    capa: 1
+    destino: ofertas              # va a la tabla 'ofertas', no al entorno
+    campos: [objectid, id, source_type, source_name, code, commercial_type, category, type, status,
+             original_neighborhood, stratum, administration, private_area_m2, total_area_m2, age,
+             price, parking_number, garages_number, bedrooms_number, bathrooms_number, floor_number,
+             elevator, link, longitude, latitude, created_at, updated_at, codigo_barrio,
+             tipo_inmueble, tipo_comercio, year]
+    max_registros: 10000
+    activa: true
